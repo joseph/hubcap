@@ -1,6 +1,6 @@
 class Cappet::Group
 
-  attr_reader(:name, :cap_attributes, :roles, :params)
+  attr_reader(:name, :cap_attributes, :roles, :params, :parent, :children)
 
   def initialize(parent, name, &blk)
     @name = name
@@ -8,6 +8,8 @@ class Cappet::Group
       @cap_attributes = parent.cap_attributes.clone
       @roles = parent.roles.clone
       @params = parent.params.clone
+    elsif !kind_of?(Cappet::Top)
+      raise(Cappet::GroupWithoutParent, self.inspect)
     end
     @children = []
     instance_eval(&blk)  if blk && processable?
@@ -24,12 +26,12 @@ class Cappet::Group
 
 
   def top
-    @parent.top
+    @parent ? @parent.top : self
   end
 
 
   def history
-    @parent.history + [@name]
+    @parent ? @parent.history + [@name] : []
   end
 
 
@@ -138,5 +140,8 @@ class Cappet::Group
     end
     outs.join("\n#{indent}")
   end
+
+
+  class Cappet::GroupWithoutParent < StandardError; end
 
 end

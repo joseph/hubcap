@@ -1,6 +1,8 @@
+require 'yaml'
+
 module Cappet
 
-  def self.groups(filter_string, &blk)
+  def self.groups(filter_string = '', &blk)
     Cappet::Top.new(filter_string).tap { |scope|
       scope.instance_eval(&blk)
     }

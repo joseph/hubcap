@@ -10,17 +10,17 @@ class Cappet::Server < Cappet::Group
 
 
   def application(*args)
-    raise('Not permitted inside a server block: application.')
+    raise(Cappet::ServerSubgroupDisallowed, 'application')
   end
 
 
   def server(*args)
-    raise('Not permitted inside a server block: server.')
+    raise(Cappet::ServerSubgroupDisallowed, 'server')
   end
 
 
   def group(*args)
-    raise('Not permitted inside a server block: group.')
+    raise(Cappet::ServerSubgroupDisallowed, 'group')
   end
 
 
@@ -36,5 +36,8 @@ class Cappet::Server < Cappet::Group
   def yaml
     { 'classes' => @roles.collect(&:to_s), 'parameters' => @params }.to_yaml
   end
+
+
+  class Cappet::ServerSubgroupDisallowed < StandardError; end
 
 end

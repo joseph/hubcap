@@ -18,16 +18,6 @@ class Cappet::Top < Cappet::Group
   end
 
 
-  def top
-    self
-  end
-
-
-  def history
-    []
-  end
-
-
   def cap_set(hash)
     hash.each_pair { |k, v|
       if @cap_sets[k] && @cap_sets[k] != v
@@ -45,7 +35,7 @@ class Cappet::Top < Cappet::Group
 
 
   def configure_capistrano(cap)
-    raise("Capistrano already configured by cappet!")  if cap.exists?(:cappet)
+    raise(Cappet::CapistranoAlreadyConfigured)  if cap.exists?(:cappet)
     cap.set(:cappet, self)
 
     # FIXME: cap.load(path) would be nicer.
@@ -88,26 +78,26 @@ class Cappet::Top < Cappet::Group
       apps = servers.collect(&:application_parent).compact.uniq
 
       # A - there should be only one application for all the servers
-      if apps.size > 1
-        raise "Too many applications: #{apps.collect(&:name).join(', ')}"
-      end
+      raise(
+        Cappet::ApplicationModeError::TooManyApplications,
+        apps.collect(&:name).join(', ')
+      )  if apps.size > 1
 
       # B - there should be no clash of cap sets
-      if @cap_set_clashes.any?
-        raise "Cap set clash: #{@cap_set_clashes.inspect}"
-      end
+      raise(
+        Cappet::ApplicationModeError::NoApplications,
+        @cap_set_clashes.inspect
+      )  if @cap_set_clashes.any?
 
       # C - app-specific, but no applications
-      if !apps.any?
-        raise "In application mode, but no applications."
-      else
-        # Otherwise, load all recipes...
-        cap.set(:application, apps.first.name)
-        apps.first.recipe_paths.each { |rp|
-          #puts("Load recipe: #{rp}")
-          cap.load(rp)
-        }
-      end
+      raise(Cappet::ApplicationModeError::NoApplications)  if !apps.any?
+
+      # Otherwise, load all recipes...
+      cap.set(:application, apps.first.name)
+      apps.first.recipe_paths.each { |rp|
+        #puts("Load recipe: #{rp}")
+        cap.load(rp)
+      }
 
       # ..and declare all cap sets.
       @cap_sets.each_pair { |key, val|
@@ -115,5 +105,14 @@ class Cappet::Top < Cappet::Group
         val.kind_of?(Proc) ? cap.set(key, &val) : cap.set(key, val)
       }
     end
+
+
+
+  class Cappet::CapistranoAlreadyConfigured < StandardError; end
+  class Cappet::ApplicationModeError < StandardError;
+    class TooManyApplications < self; end
+    class NoApplications < self; end
+    class DuplicateSets < self; end
+  end
 
 end

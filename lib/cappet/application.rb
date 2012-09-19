@@ -9,13 +9,16 @@ class Cappet::Application < Cappet::Group
 
 
   def application(*args)
-    raise('Nested applications are not permitted.')
+    raise(Cappet::NestedApplicationDisallowed)
   end
 
 
   def extend_tree(outs)
     outs << "Load: #{@recipe_paths.inspect}"  if @recipe_paths.any?
   end
+
+
+  class Cappet::NestedApplicationDisallowed < StandardError; end
 
 end
 

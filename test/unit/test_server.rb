@@ -1,42 +1,42 @@
 require 'test_helper'
 
-class Cappet::TestServer < Test::Unit::TestCase
+class Hubcap::TestServer < Test::Unit::TestCase
 
   def test_address
-    top = Cappet.groups { server('test') }
-    assert_equal('test', top.servers.first.address)
-    top = Cappet.groups { server('test', :address => 'test.example.com') }
-    assert_equal('test.example.com', top.servers.first.address)
+    hub = Hubcap.hub { server('test') }
+    assert_equal('test', hub.servers.first.address)
+    hub = Hubcap.hub { server('test', :address => 'test.example.com') }
+    assert_equal('test.example.com', hub.servers.first.address)
   end
 
 
   def test_subgroups_disallowed
-    assert_raises(Cappet::ServerSubgroupDisallowed) {
-      Cappet.groups { server('test') { application('child') } }
+    assert_raises(Hubcap::ServerSubgroupDisallowed) {
+      Hubcap.hub { server('test') { application('child') } }
     }
-    assert_raises(Cappet::ServerSubgroupDisallowed) {
-      Cappet.groups { server('test') { server('child') } }
+    assert_raises(Hubcap::ServerSubgroupDisallowed) {
+      Hubcap.hub { server('test') { server('child') } }
     }
-    assert_raises(Cappet::ServerSubgroupDisallowed) {
-      Cappet.groups { server('test') { group('child') } }
+    assert_raises(Hubcap::ServerSubgroupDisallowed) {
+      Hubcap.hub { server('test') { group('child') } }
     }
   end
 
 
   def test_application_parent
     # No application
-    top = Cappet.groups { server('test') }
-    assert_equal(nil, top.servers.first.application_parent)
+    hub = Hubcap.hub { server('test') }
+    assert_equal(nil, hub.servers.first.application_parent)
 
     # Direct inheritance
-    top = Cappet.groups {
+    hub = Hubcap.hub {
       application('foo') { server('test') }
       application('bar')
     }
-    assert_equal('foo', top.servers.first.application_parent.name)
+    assert_equal('foo', hub.servers.first.application_parent.name)
 
     # Grandparent in a complex structure
-    top = Cappet.groups {
+    hub = Hubcap.hub {
       group('everything') {
         application('baz') {
           group('g1') {
@@ -45,12 +45,12 @@ class Cappet::TestServer < Test::Unit::TestCase
         }
       }
     }
-    assert_equal('baz', top.servers.first.application_parent.name)
+    assert_equal('baz', hub.servers.first.application_parent.name)
   end
 
 
   def test_yaml
-    top = Cappet.groups {
+    hub = Hubcap.hub {
       group('everything') {
         role('baseline')
         server('test') {
@@ -59,7 +59,7 @@ class Cappet::TestServer < Test::Unit::TestCase
         }
       }
     }
-    hash = YAML.load(top.servers.first.yaml)
+    hash = YAML.load(hub.servers.first.yaml)
     assert_equal(['baseline', 'test::server'], hash['classes'])
     assert_equal(['classes', 'parameters'], hash.keys.sort)
     assert_equal(['bar', 'foo'], hash['parameters'].keys.sort)

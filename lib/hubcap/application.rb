@@ -1,4 +1,4 @@
-class Cappet::Application < Cappet::Group
+class Hubcap::Application < Hubcap::Group
 
   attr_reader(:recipe_paths)
 
@@ -9,7 +9,7 @@ class Cappet::Application < Cappet::Group
 
 
   def application(*args)
-    raise(Cappet::NestedApplicationDisallowed)
+    raise(Hubcap::NestedApplicationDisallowed)
   end
 
 
@@ -18,7 +18,7 @@ class Cappet::Application < Cappet::Group
   end
 
 
-  class Cappet::NestedApplicationDisallowed < StandardError; end
+  class Hubcap::NestedApplicationDisallowed < StandardError; end
 
 end
 

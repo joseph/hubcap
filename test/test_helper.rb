@@ -1,2 +1,2 @@
-require 'cappet'
+require 'hubcap'
 require 'test/unit'

@@ -1,4 +1,4 @@
-class Cappet::Group
+class Hubcap::Group
 
   attr_reader(:name, :cap_attributes, :roles, :params, :parent, :children)
 
@@ -8,8 +8,8 @@ class Cappet::Group
       @cap_attributes = parent.cap_attributes.clone
       @roles = parent.roles.clone
       @params = parent.params.clone
-    elsif !kind_of?(Cappet::Top)
-      raise(Cappet::GroupWithoutParent, self.inspect)
+    elsif !kind_of?(Hubcap::Hub)
+      raise(Hubcap::GroupWithoutParent, self.inspect)
     end
     @children = []
     instance_eval(&blk)  if blk && processable?
@@ -25,8 +25,8 @@ class Cappet::Group
   end
 
 
-  def top
-    @parent ? @parent.top : self
+  def hub
+    @parent ? @parent.hub : self
   end
 
 
@@ -37,15 +37,15 @@ class Cappet::Group
 
   def processable?
     # My history and the filter are identical to the shortest end.
-    s = [history.length, top.filter.length].min
-    history.slice(0,s) == top.filter.slice(0,s)
+    s = [history.length, hub.filter.length].min
+    history.slice(0,s) == hub.filter.slice(0,s)
   end
 
 
   def collectable?
     # My history is same length or longer than filter, but identical to
     # that point.
-    processable? && history.length >= top.filter.length
+    processable? && history.length >= hub.filter.length
   end
 
 
@@ -60,9 +60,9 @@ class Cappet::Group
   #
   def cap_set(*args)
     if args.length == 2
-      top.cap_set(args.first => args.last)
+      hub.cap_set(args.first => args.last)
     elsif args.length == 1 && args.first.kind_of?(Hash)
-      top.cap_set(args.first)
+      hub.cap_set(args.first)
     else
       raise ArgumentError('Must be (key, value) or (hash).')
     end
@@ -110,22 +110,22 @@ class Cappet::Group
 
   def add_child(category, child)
     @children << child  if child.processable?
-    top.send(category) << child  if child.collectable?
+    hub.send(category) << child  if child.collectable?
   end
 
 
   def application(name, options = {}, &blk)
-    add_child(:applications, Cappet::Application.new(self, name, options, &blk))
+    add_child(:applications, Hubcap::Application.new(self, name, options, &blk))
   end
 
 
   def server(name, options = {}, &blk)
-    add_child(:servers, Cappet::Server.new(self, name, options, &blk))
+    add_child(:servers, Hubcap::Server.new(self, name, options, &blk))
   end
 
 
   def group(name, &blk)
-    add_child(:groups, Cappet::Group.new(self, name, &blk))
+    add_child(:groups, Hubcap::Group.new(self, name, &blk))
   end
 
 
@@ -142,6 +142,6 @@ class Cappet::Group
   end
 
 
-  class Cappet::GroupWithoutParent < StandardError; end
+  class Hubcap::GroupWithoutParent < StandardError; end
 
 end

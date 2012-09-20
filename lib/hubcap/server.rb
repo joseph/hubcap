@@ -1,4 +1,4 @@
-class Cappet::Server < Cappet::Group
+class Hubcap::Server < Hubcap::Group
 
   attr_reader(:address)
 
@@ -10,24 +10,24 @@ class Cappet::Server < Cappet::Group
 
 
   def application(*args)
-    raise(Cappet::ServerSubgroupDisallowed, 'application')
+    raise(Hubcap::ServerSubgroupDisallowed, 'application')
   end
 
 
   def server(*args)
-    raise(Cappet::ServerSubgroupDisallowed, 'server')
+    raise(Hubcap::ServerSubgroupDisallowed, 'server')
   end
 
 
   def group(*args)
-    raise(Cappet::ServerSubgroupDisallowed, 'group')
+    raise(Hubcap::ServerSubgroupDisallowed, 'group')
   end
 
 
   def application_parent
     p = self
-    while p && p != top
-      return p  if p.kind_of?(Cappet::Application)
+    while p && p != hub
+      return p  if p.kind_of?(Hubcap::Application)
       p = p.instance_variable_get(:@parent)
     end
   end
@@ -38,6 +38,6 @@ class Cappet::Server < Cappet::Group
   end
 
 
-  class Cappet::ServerSubgroupDisallowed < StandardError; end
+  class Hubcap::ServerSubgroupDisallowed < StandardError; end
 
 end

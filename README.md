@@ -1,15 +1,15 @@
-# Cappet
+# Hubcap
 
 Unite Capistrano and Puppet with a single Ruby config file.
 
 Invented by Joseph Pearson at [OverDrive](http://overdrive.com).
 
-## Meet Cappet
+## Meet Hubcap
 
 You want to provision your servers with Puppet. You want to deploy to your
 servers with Capistrano. Where do you define your server infrastructure?
 
-Cappet lets you define the characteristics of your servers once. Then, when you
+Hubcap lets you define the characteristics of your servers once. Then, when you
 need to use Puppet, Capistrano drives. It deploys your Puppet modules and
 manifests, plus a special host-specific file, and applies it to the server.
 (This is sometimes called "masterless Puppet". It has a lot of benefits that
@@ -95,10 +95,10 @@ Something like this goes at the end of your Capfile:
      # point will be available only in application mode.
      if (target = ENV['TO']) && !ENV['TO'].empty?
        target = ''  if target == 'ALL'
-       require('cappet')
-       Cappet.load(target, 'nodes').configure_capistrano(self)
+       require('hubcap')
+       Hubcap.load(target, 'nodes').configure_capistrano(self)
      else
-       warn("NB: No servers specified. Target a Cappet group with TO.")
+       warn("NB: No servers specified. Target a Hubcap group with TO.")
      end
 
 Now, let's see what gets defined:

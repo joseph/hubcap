@@ -1,4 +1,4 @@
-module Cappet
+module Hubcap
 
   VERSION = '0.0.1'
 

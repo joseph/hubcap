@@ -1,4 +1,4 @@
-class Cappet::Top < Cappet::Group
+class Hubcap::Hub < Hubcap::Group
 
   attr_reader(:filter, :applications, :servers, :groups)
 
@@ -35,13 +35,13 @@ class Cappet::Top < Cappet::Group
 
 
   def configure_capistrano(cap)
-    raise(Cappet::CapistranoAlreadyConfigured)  if cap.exists?(:cappet)
-    cap.set(:cappet, self)
+    raise(Hubcap::CapistranoAlreadyConfigured)  if cap.exists?(:Hubcap)
+    cap.set(:Hubcap, self)
 
     # FIXME: cap.load(path) would be nicer.
     cap.instance_eval {
-      require('cappet/recipes/servers')
-      require('cappet/recipes/puppet')
+      require('Hubcap/recipes/servers')
+      require('Hubcap/recipes/puppet')
     }
 
     # Declare the servers.
@@ -58,7 +58,7 @@ class Cappet::Top < Cappet::Group
   # loaded, and cap_set collisions are ignored.
   #
   def capistrano_is_agnostic?(cap)
-    return cap.fetch(:cappet_agnostic)  if cap.exists?(:cappet_agnostic)
+    return cap.fetch(:Hubcap_agnostic)  if cap.exists?(:Hubcap_agnostic)
     ag = true
     options = cap.logger.instance_variable_get(:@options)
     if options && options[:actions] && options[:actions].any?
@@ -67,7 +67,7 @@ class Cappet::Top < Cappet::Group
         ag = false  unless cap.find_task(tasks.shift)
       end
     end
-    cap.set(:cappet_agnostic, ag)
+    cap.set(:Hubcap_agnostic, ag)
     ag
   end
 
@@ -79,18 +79,18 @@ class Cappet::Top < Cappet::Group
 
       # A - there should be only one application for all the servers
       raise(
-        Cappet::ApplicationModeError::TooManyApplications,
+        Hubcap::ApplicationModeError::TooManyApplications,
         apps.collect(&:name).join(', ')
       )  if apps.size > 1
 
       # B - there should be no clash of cap sets
       raise(
-        Cappet::ApplicationModeError::NoApplications,
+        Hubcap::ApplicationModeError::NoApplications,
         @cap_set_clashes.inspect
       )  if @cap_set_clashes.any?
 
       # C - app-specific, but no applications
-      raise(Cappet::ApplicationModeError::NoApplications)  if !apps.any?
+      raise(Hubcap::ApplicationModeError::NoApplications)  if !apps.any?
 
       # Otherwise, load all recipes...
       cap.set(:application, apps.first.name)
@@ -108,8 +108,8 @@ class Cappet::Top < Cappet::Group
 
 
 
-  class Cappet::CapistranoAlreadyConfigured < StandardError; end
-  class Cappet::ApplicationModeError < StandardError;
+  class Hubcap::CapistranoAlreadyConfigured < StandardError; end
+  class Hubcap::ApplicationModeError < StandardError;
     class TooManyApplications < self; end
     class NoApplications < self; end
     class DuplicateSets < self; end

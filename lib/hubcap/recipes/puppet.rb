@@ -2,18 +2,18 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace(:puppet) do
 
-    unless exists?(:cappet_repository)
-      set(:cappet_repository) { raise "Required variable: cappet_repository" }
+    unless exists?(:puppet_repository)
+      set(:puppet_repository) { raise "Required variable: puppet_repository" }
     end
-    set(:cappet_branch, 'master')
-    set(:cappet_path, '/var/www/provision/cappet')
-    set(:cappet_git_password) { Capistrano::CLI.password_prompt }
-    set(:cappet_manifest_path) { "#{cappet_path}/puppet/host.pp" }
-    set(:cappet_modules_path) { "#{cappet_path}/puppet/modules" }
-    set(:cappet_yaml_path) { "#{cappet_path}/puppet/host.yaml" }
-    set(:cappet_enc_path) { "#{cappet_path}/puppet/enc" }
-    set(:cappet_enc) { "#!/bin/sh\ncat '#{cappet_yaml_path}'" }
-    set(:cappet_puppet_parameters, '--no-report')
+    set(:puppet_branch, 'master')
+    set(:puppet_path, '/var/www/provision/puppet')
+    set(:puppet_git_password) { Capistrano::CLI.password_prompt }
+    set(:puppet_manifest_path) { "#{puppet_path}/puppet/host.pp" }
+    set(:puppet_modules_path) { "#{puppet_path}/puppet/modules" }
+    set(:puppet_yaml_path) { "#{puppet_path}/puppet/host.yaml" }
+    set(:puppet_enc_path) { "#{puppet_path}/puppet/enc" }
+    set(:puppet_enc) { "#!/bin/sh\ncat '#{puppet_yaml_path}'" }
+    set(:puppet_parameters, '--no-report')
 
 
     desc <<-DESC
@@ -34,11 +34,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       Also looks for Puppet 3.0 gem on the server, and installs it if not found.
     DESC
     task(:check) do
-      unless exists?(:cappet_agnostic)
-        raise "Cappet has not configured this Capistrano instance."
+      unless exists?(:hubcap_agnostic)
+        raise "Hubcap has not configured this Capistrano instance."
       end
-      unless cappet_agnostic
-        raise "Puppet tasks are not available in Cappet application mode"
+      unless hubcap_agnostic
+        raise "Puppet tasks are not available in Hubcap application mode"
       end
 
       apt_cmd = [
@@ -82,7 +82,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc <<-DESC
       Basically, this pulls down your puppet scripts so you can run them.
-      It does this by cloning the cappet repository to each server (if necessary),
+      It does this by cloning the Hubcap repository to each server (if necessary),
       then fetching the latest code and resetting to the HEAD of the
       specified branch.
     DESC
@@ -92,7 +92,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         logger.info "[#{host} :: #{stream}] #{text}"
         out = case text
         when /\bpassword.*:/i, /passphrase/i  # Git password or SSH passphrase.
-          "#{cappet_git_password}\n"
+          "#{puppet_git_password}\n"
         when %r{\(yes/no\)}                   # Should git connect?
           "yes\n"
         when /accept \(t\)emporarily/         # Should git accept certificate?
@@ -100,18 +100,18 @@ Capistrano::Configuration.instance(:must_exist).load do
         end
         channel.send_data(out)  if out
       }
-      sudo("mkdir -p #{File.dirname(cappet_path)}")
-      sudo("chown #{user} #{File.dirname(cappet_path)}")
+      sudo("mkdir -p #{File.dirname(puppet_path)}")
+      sudo("chown #{user} #{File.dirname(puppet_path)}")
       run(
-        "[ -d #{cappet_path} ] || git clone #{cappet_repository} #{cappet_path}",
+        "[ -d #{puppet_path} ] || git clone #{puppet_repository} #{puppet_path}",
         :shell => nil,
         &handle_data
       )
       run(
         [
-          "cd #{cappet_path}",
+          "cd #{puppet_path}",
           "git fetch origin",
-          "git reset --hard origin/#{cappet_branch}"
+          "git reset --hard origin/#{puppet_branch}"
         ].join(' && '),
         :shell => nil,
         &handle_data
@@ -125,11 +125,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       server-specific.
     DESC
     task(:properties) do
-      cappet.servers.each { |s|
-        put(s.yaml, cappet_yaml_path, :hosts => s.address)
+      puppet.servers.each { |s|
+        put(s.yaml, puppet_yaml_path, :hosts => s.address)
       }
-      put(cappet_enc, cappet_enc_path)
-      run("chmod +x #{cappet_enc_path}")
+      put(puppet_enc, puppet_enc_path)
+      run("chmod +x #{puppet_enc_path}")
     end
 
 
@@ -159,11 +159,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       sudo([
         "puppet apply",
         "--node_terminus exec",
-        "--external_nodes '#{cappet_enc_path}'",
-        "--modulepath '#{cappet_modules_path}'",
-        cappet_puppet_parameters,
+        "--external_nodes '#{puppet_enc_path}'",
+        "--modulepath '#{puppet_modules_path}'",
+        puppet_parameters,
         params,
-        "'#{cappet_manifest_path}'"
+        "'#{puppet_manifest_path}'"
       ].compact.join(' '))
     end
 

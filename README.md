@@ -15,7 +15,32 @@ manifests, plus a special host-specific file, and applies it to the server.
 (This is sometimes called "masterless Puppet". It has a lot of benefits that
 derive from decentralization and pushing changes on-demand.)
 
-Here's what your config file might look like:
+Here's a really simple infrastructure configuration file:
+
+    group('us') {
+      server('app.example.com') {
+        role(:app)
+        cap_attribute(:primary => true)
+      }
+      server('db.example.com') {
+        role(:db)
+        cap_attribute(:no_release => true)
+      }
+    }
+
+    group('au') {
+      server('example.com.au') {
+        role(:app, :db)
+        cap_attribute(:primary => true)
+      }
+    }
+
+Using this config, you could tell Capistrano to deploy to all servers, servers
+in one group, or just a single server.
+
+Here's a more advanced example - an application that can be deployed to a set
+of *staging* servers or a larger set of *production* servers. It has special
+parameters that Puppet will use.
 
     # An application called 'readme' that uses Cap's default deployment recipe.
     application('readme', :recipes => 'deploy') {
@@ -66,7 +91,8 @@ Here's what your config file might look like:
     }
 
 
-Save this as `hub/example.rb`.
+Save this as `example.rb` in a `hub` subdirectory of the location of your
+`Capfile`.
 
 Run:
 

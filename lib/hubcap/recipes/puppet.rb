@@ -125,7 +125,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       server-specific.
     DESC
     task(:properties) do
-      puppet.servers.each { |s|
+      hubcap.servers.each { |s|
         put(s.yaml, puppet_yaml_path, :hosts => s.address)
       }
       put(puppet_enc, puppet_enc_path)

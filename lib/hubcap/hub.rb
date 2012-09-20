@@ -35,13 +35,13 @@ class Hubcap::Hub < Hubcap::Group
 
 
   def configure_capistrano(cap)
-    raise(Hubcap::CapistranoAlreadyConfigured)  if cap.exists?(:Hubcap)
-    cap.set(:Hubcap, self)
+    raise(Hubcap::CapistranoAlreadyConfigured)  if cap.exists?(:hubcap)
+    cap.set(:hubcap, self)
 
     # FIXME: cap.load(path) would be nicer.
     cap.instance_eval {
-      require('Hubcap/recipes/servers')
-      require('Hubcap/recipes/puppet')
+      require('hubcap/recipes/servers')
+      require('hubcap/recipes/puppet')
     }
 
     # Declare the servers.
@@ -58,7 +58,7 @@ class Hubcap::Hub < Hubcap::Group
   # loaded, and cap_set collisions are ignored.
   #
   def capistrano_is_agnostic?(cap)
-    return cap.fetch(:Hubcap_agnostic)  if cap.exists?(:Hubcap_agnostic)
+    return cap.fetch(:hubcap_agnostic)  if cap.exists?(:hubcap_agnostic)
     ag = true
     options = cap.logger.instance_variable_get(:@options)
     if options && options[:actions] && options[:actions].any?
@@ -67,7 +67,7 @@ class Hubcap::Hub < Hubcap::Group
         ag = false  unless cap.find_task(tasks.shift)
       end
     end
-    cap.set(:Hubcap_agnostic, ag)
+    cap.set(:hubcap_agnostic, ag)
     ag
   end
 

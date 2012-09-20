@@ -1,8 +1,8 @@
 # Hubcap
 
-Unite Capistrano and Puppet with a single Ruby config file.
+Create a hub for your server configuration. Use it with Capistrano,
+Puppet and others.
 
-Invented by Joseph Pearson at [OverDrive](http://overdrive.com).
 
 ## Meet Hubcap
 
@@ -87,28 +87,47 @@ Here's what your config file might look like:
     }
 
 
-Save this as `nodes.rb`.
+Save this as `hub/example.rb`.
 
-Something like this goes at the end of your Capfile:
+Run:
+
+    $ hubcap ALL servers:tree
+
+That's a lot of info. You can filter your server list to target specific
+groups of servers: `hubcap example.vagrant servers:tree` or
+`hubcap example.production.db servers tree`, for example.
+
+You can run `list` in place of `tree` to see just the servers that match
+your filter.
+
+
+## Direct integration with Capistrano
+
+If you'd rather run `cap` than `hubcap`, you can load your hub configuration
+directly in your `Capfile`. Add this to the end of the file:
+
+     require('hubcap')
+     Hubcap.load('', 'hub').configure_capistrano(self)
+
+The two arguments to `Hubcap.load` are the filter (where `''` means no filter),
+and the path to the hub configuration. This will load `*.rb` in the `hub`
+directory (but not subdirectories). You can specify multiple paths as additional
+arguments -- whole directories or specific files.
+
+If you want to simulate the behaviour of the `hubcap` script, you could do it
+with something like this in your `Capfile`.
 
      # Load servers and sets from node config. Any recipes loaded after this
      # point will be available only in application mode.
      if (target = ENV['TO']) && !ENV['TO'].empty?
        target = ''  if target == 'ALL'
        require('hubcap')
-       Hubcap.load(target, 'nodes').configure_capistrano(self)
+       Hubcap.load(target, 'hub').configure_capistrano(self)
      else
        warn("NB: No servers specified. Target a Hubcap group with TO.")
      end
 
-Now, let's see what gets defined:
+In this set-up, you'd run `cap` like this:
 
-    $ cap servers:tree TO=ALL
-
-That's a lot of servers. You can filter your server list to target specific
-groups of servers: `TO=example.vagrant` or `TO=example.production.db`, for
-example.
-
-You can run `list` in place of `tree` to see just the servers that match
-your filter.
+    $ cap TO=example.vagrant servers:tree
 

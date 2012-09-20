@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+# 'hubcap' - a convenience script for loading Capistrano with Hubcap config.
+#
+# Usages:
+#
+#   # This will list the available default tasks:
+#   hubcap -T
+#
+#   # This task (or tasks) will run on all defined servers in the hub:
+#   hubcap ALL task:name ...
+#
+#   # This task will run on all servers inside the specified group:
+#   hubcap app_name.group_name task:name ...
+#
+#   # This will run on just the specified server:
+#   hubcap app_name.group_name.server_name task:name ...
+#
+#
+# Note that the hub configuration files are loaded from a subdirectory of the
+# current directory named 'hub'. You can change this to point at another
+# directory, single file or multiple files by setting the HUB_CONFIG env var.
+#
+#   HUB_CONFIG=test/data hubcap ALL servers:list
+#
+#   HUB_CONFIG=test/data/example.rb,test/data/simple.rb hubcap ALL servers:tree
+#
+#
+
+
+require('capistrano/cli')
+require('hubcap')
+
+
+class Hubcap::CLI < Capistrano::CLI
+
+  attr_accessor(:cap)
+
+
+  def self.roll!
+    target = pre_parse_for_target(ARGV)
+
+    if !target
+      puts("Usage: hubcap name.of.target.group task:name")
+      puts("To target all servers: hubcap ALL task:name")
+      exit
+    end
+
+    if target == :skip
+      parse(ARGV).execute!
+    else
+      filter = (target == 'ALL') ? '' : target
+      paths = ['hub']
+      paths = ENV['HUB_CONFIG'].split(',')  if ENV['HUB_CONFIG']
+      hub = Hubcap.load(filter, *paths)
+      unless hub.children.any?
+        puts("Hubcap error: no servers for '#{target}' in [#{paths.join(',')}]")
+        exit
+      end
+      parse(ARGV) { |cap|
+        cap.load('standard')
+        hub.configure_capistrano(cap)
+      }.execute!
+    end
+  end
+
+
+  def self.pre_parse_for_target(args)
+    if args.length == 1 && args.first.match(/^-/)
+      return :skip
+    elsif args.length < 1
+      puts("Error: no servers specified")
+      return nil
+    elsif args.length < 2
+      puts("Error: no tasks specified")
+      return nil
+    end
+    return args.shift
+  end
+
+
+  def self.parse(args)
+    cli = new(args)
+    cli.parse_options!
+    cli.cap = Capistrano::Configuration.new(cli.options)
+    yield(cli.cap)  if block_given?
+    cli
+  end
+
+
+  def instantiate_configuration(options = {})
+    self.cap
+  end
+
+end
+
+
+Hubcap::CLI.roll!

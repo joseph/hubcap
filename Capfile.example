@@ -19,16 +19,19 @@ set(:password) {
   warn("NB: You can run as another user with the AS environment variable.")
   Capistrano::CLI.password_prompt
 }
-set(:puppet_repository, 'git@122.100.2.206:cappet.git')
 
 
-# OKAY! Load servers and sets from node config. Any recipes loaded after this
+# This is only processed if we are using cap directly (not bin/hubcap).
+#
+# Load servers and sets from node config. Any recipes loaded after this
 # point will be available only in application mode.
 #
-if (target = ENV['TO']) && !ENV['TO'].empty?
-  target = ''  if target == 'ALL'
-  require('hubcap')
-  Hubcap.load(target, 'test/data').configure_capistrano(self)
-else
-  warn("NB: No servers specified. Target a Hubcap group or server with TO.")
+unless exists?(:hubcap)
+  if (target = ENV['TO']) && !ENV['TO'].empty?
+    target = ''  if target == 'ALL'
+    require('hubcap')
+    Hubcap.load(target, 'test/data').configure_capistrano(self)
+  else
+    warn("NB: No servers specified. Target a Hubcap group or server with TO.")
+  end
 end

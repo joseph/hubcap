@@ -1,6 +1,6 @@
 class Hubcap::Hub < Hubcap::Group
 
-  attr_reader(:filter, :applications, :servers, :groups)
+  attr_reader(:filter, :applications, :servers, :groups, :cap_sets)
 
 
   def initialize(filter_string)
@@ -8,13 +8,13 @@ class Hubcap::Hub < Hubcap::Group
     @cap_sets = {}
     @cap_set_clashes = []
     @cap_attributes = {}
-    @roles = []
+    @cap_roles = []
+    @puppet_roles = []
     @params = {}
     @applications = []
     @servers = []
     @groups = []
-    super(nil, '')
-    @name = '∞'
+    super(nil, '∞')
   end
 
 
@@ -34,11 +34,23 @@ class Hubcap::Hub < Hubcap::Group
   end
 
 
+  # Does a few things:
+  #
+  # * Sets the :hubcap variable in the Capistrano instance.
+  # * Loads the default Hubcap recipes into the Capistrano instance.
+  # * Defines each server as a Capistrano server().
+  #
+  # If we are in "agnostic mode" - executing a default task - that's all we
+  # do. If we are in "application mode" - executing at least one non-standard
+  # task - then we do a few more things:
+  #
+  # * Load all the recipes for the application into the Capistrano instance.
+  # * Set all the @cap_set variables in the Capistrano instance.
+  #
   def configure_capistrano(cap)
     raise(Hubcap::CapistranoAlreadyConfigured)  if cap.exists?(:hubcap)
     cap.set(:hubcap, self)
 
-    # FIXME: cap.load(path) would be nicer.
     cap.instance_eval {
       require('hubcap/recipes/servers')
       require('hubcap/recipes/puppet')
@@ -46,8 +58,7 @@ class Hubcap::Hub < Hubcap::Group
 
     # Declare the servers.
     servers.each { |s|
-      #puts("-> #{s.address}: #{s.roles.inspect}, #{s.cap_attributes.inspect}")
-      cap.server(s.address, *(s.roles + [s.cap_attributes]))
+      cap.server(s.address, *(s.cap_roles + [s.cap_attributes]))
     }
 
     configure_application_mode(cap)  unless capistrano_is_agnostic?(cap)
@@ -85,7 +96,7 @@ class Hubcap::Hub < Hubcap::Group
 
       # B - there should be no clash of cap sets
       raise(
-        Hubcap::ApplicationModeError::NoApplications,
+        Hubcap::ApplicationModeError::DuplicateSets,
         @cap_set_clashes.inspect
       )  if @cap_set_clashes.any?
 
@@ -94,14 +105,10 @@ class Hubcap::Hub < Hubcap::Group
 
       # Otherwise, load all recipes...
       cap.set(:application, apps.first.name)
-      apps.first.recipe_paths.each { |rp|
-        #puts("Load recipe: #{rp}")
-        cap.load(rp)
-      }
+      apps.first.recipe_paths.each { |rp| cap.load(rp) }
 
       # ..and declare all cap sets.
       @cap_sets.each_pair { |key, val|
-        #puts("Set: #{key} => #{val}")
         val.kind_of?(Proc) ? cap.set(key, &val) : cap.set(key, val)
       }
     end

@@ -14,4 +14,5 @@ Gem::Specification.new do |gem|
   gem.name = 'hubcap'
   gem.require_paths = ['lib']
   gem.version = Hubcap::VERSION
+  gem.add_dependency('capistrano')
 end

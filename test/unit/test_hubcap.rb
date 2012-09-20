@@ -11,7 +11,7 @@ class Hubcap::TestHubcap < Test::Unit::TestCase
     }
     assert_equal(1, hub.servers.length)
     assert_equal('serverB', hub.servers.last.name)
-    assert_equal([:baseline], hub.servers.first.roles)
+    assert_equal([:baseline], hub.servers.first.cap_roles)
   end
 
 

@@ -8,7 +8,7 @@ application('readme', :recipes => 'deploy') {
 
   group('staging') {
     # Puppet will have a $::exception_subject_prefix variable on these servers.
-    params('exception_subject_prefix' => '[STAGING] ')
+    param('exception_subject_prefix' => '[STAGING] ')
     # For simple staging, just one server that does everything.
     server('readme.stage') {
       role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
@@ -17,7 +17,7 @@ application('readme', :recipes => 'deploy') {
 
   group('production') {
     # Puppet will have these top-scope variables on all these servers.
-    params(
+    param(
       'exception_subject_prefix' => '[PRODUCTION] ',
       'env' => {
         "FORCE_SSL" => true,

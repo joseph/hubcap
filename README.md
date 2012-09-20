@@ -27,7 +27,7 @@ Here's what your config file might look like:
 
       group('staging') {
         # Puppet gets a $::exception_subject_prefix variable on these servers.
-        params('exception_subject_prefix' => '[STAGING] ')
+        param('exception_subject_prefix' => '[STAGING] ')
         # For simple staging, just one server that does everything.
         server('readme.stage') {
           role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
@@ -36,7 +36,7 @@ Here's what your config file might look like:
 
       group('production') {
         # Puppet gets these top-scope variables on servers in this group.
-        params(
+        param(
           'exception_subject_prefix' => '[PRODUCTION] ',
           'env' => {
             "FORCE_SSL" => true,
@@ -106,7 +106,7 @@ The Hubcap DSL is very simple. This is the basic set of statements:
   `:cap => '...'`, or Puppet-only with :puppet => `'...'`. This is additive:
   if you have multiple role declarations in your tree, all of them apply.
 
-* **`params`** - Add to a hash of 'parameters' that will be supplied to Puppet
+* **`param`** - Add to a hash of 'parameters' that will be supplied to Puppet
   as top-scope variables for servers in this group. Like `role`, this is 
   additive.
 

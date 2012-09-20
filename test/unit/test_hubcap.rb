@@ -31,7 +31,7 @@ class Hubcap::TestHubcap < Test::Unit::TestCase
 
     # You can load a directory (or directories).
     hub = Hubcap.load('', 'test/data')
-    assert_equal(6, hub.groups.length)
+    assert_equal(11, hub.groups.length)
     # ..but note that Hubcap doesn't recurse into subdirectories:
     assert_equal(nil, hub.params[:foo])
   end

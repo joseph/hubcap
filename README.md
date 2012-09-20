@@ -22,7 +22,7 @@ Here's what your config file might look like:
       # Set a capistrano variable.
       cap_set('repository', 'git@github.com:joseph/readme.git')
 
-      # Declare that all server will have the 'baseline' puppet class.
+      # Declare that all servers will have the 'baseline' puppet class.
       role(:puppet => 'baseline')
 
       group('staging') {
@@ -73,40 +73,61 @@ Run:
     $ hubcap ALL servers:tree
 
 That's a lot of info. You can filter your server list to target specific
-groups of servers: `hubcap example.vagrant servers:tree` or
-`hubcap example.production.db servers tree`, for example.
+groups of servers:
+
+    $ `hubcap example.vagrant servers:tree`
 
 You can run `list` in place of `tree` to see just the servers that match
-your filter.
+your filter:
+
+    $ `hubcap example.production.db servers:tree`
+
+
+## Working with Puppet
+
+You should have your Puppet modules in a git repository. The location of this
+repository should be specified in your Capfile with
+`set(:puppet_repository, '...')`. Your site manifest should be within this repo
+at `puppet/host.pp` (but this is also configurable).
+
+When you're ready to provision some servers:
+
+    $ `hubcap example.vagrant puppet:noop`
+    $ `hubcap example.vagrant puppet:apply`
+
+Once that's done, you can deploy your app in the usual way:
+
+    $ `hubcap example.vagrant deploy:setup deploy:cold`
+
 
 
 ## The Hubcap DSL
 
 The Hubcap DSL is very simple. This is the basic set of statements:
 
-* **`group`** - A named set of servers, roles, variables, attributes. Groups
+* `group` - A named set of servers, roles, variables, attributes. Groups
   can be nested.
 
-* **`application`** - A special kind of group. You can pass `:recipes => ...` 
+* `application` - A special kind of group. You can pass `:recipes => ...`
   to this declaration. Each recipe path will be loaded into Capistrano only
   for this application. Applications can't be nested.
 
-* **`server`** - An actual host that you are managing with Capistrano and
+* `server` - An actual host that you are managing with Capistrano and
   Puppet. The first argument is the name, which can be an IP address or domain
   name if you like. Otherwise, pass `:address => '...'`.
 
-* **`cap_set`** - Set a Capistrano variable.
+* `cap_set` - Set a Capistrano variable.
 
-* **`cap_attribute`** - Set a Cap attribute on all the servers within this 
+* `cap_attribute` - Set a Cap attribute on all the servers within this
   group, such as `:primary => true` or `:no_release => true`.
 
-* **`role`** - Add a role to the list of Capistrano roles for servers within
+* `role` - Add a role to the list of Capistrano roles for servers within
   this group. By default, these roles are supplied as classes to apply to the 
   host in Puppet. You can specify that a role is Capistrano-only with
   `:cap => '...'`, or Puppet-only with :puppet => `'...'`. This is additive:
   if you have multiple role declarations in your tree, all of them apply.
 
-* **`param`** - Add to a hash of 'parameters' that will be supplied to Puppet
+* `param` - Add to a hash of 'parameters' that will be supplied to Puppet
   as top-scope variables for servers in this group. Like `role`, this is 
   additive.
 

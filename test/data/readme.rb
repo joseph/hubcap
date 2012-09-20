@@ -3,7 +3,7 @@ application('readme', :recipes => 'deploy') {
   # Set a capistrano variable.
   cap_set('repository', 'git@github.com:joseph/readme.git')
 
-  # Declare that all server will have the 'baseline' puppet class.
+  # Declare that all servers will have the 'baseline' puppet class.
   role(:puppet => 'baseline')
 
   group('staging') {

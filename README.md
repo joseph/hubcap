@@ -17,71 +17,50 @@ derive from decentralization and pushing changes on-demand.)
 
 Here's what your config file might look like:
 
-    application('example', :recipes => 'deploy') {
+    # An application called 'readme' that uses Cap's default deployment recipe.
+    application('readme', :recipes => 'deploy') {
+      # Set a capistrano variable.
+      cap_set('repository', 'git@github.com:joseph/readme.git')
 
-      # These cap settings will apply to all the servers within this application
-      # group or any subgroups. (The same applies for roles, attributes, etc.)
-      cap_set(:repository, 'git@github.com:example/example.git')
-      cap_set(:branch, 'master')
+      # Declare that all server will have the 'baseline' puppet class.
+      role(:puppet => 'baseline')
 
-      # Load some ssh keys into param() from a separate (more secure?) file.
-      # These will be handed to your puppet scripts.
-      #absorb('nodes/private/admin_ssh_keys')
-
-      # Just a normal Ruby hash var we can reuse throughout the config.
-      common_env = {
-        'PGUSER' => 'example',
-        'RABBIT_URI' => 'amqp://example:password@localhost:54322'
-      }
-
-      # A local dev simulation.
-      group('vagrant') {
-        param('env' => common_env.merge('PGPASSWORD' => 'password'))
-        server('127.0.0.1:2222') {
-          role(:app, :db, :queue)
-        }
-      }
-
-      # Your staging environment.
       group('staging') {
-        param('env' => common_env.merge(
-          'PGPASSWORD' => 'pa55w3rd',
-          'PGHOST' => '10.10.10.20',
-          'RABBIT_URI' => 'amqp://example:pa55w3rd@10.10.10.20'
-        ))
-        server('app', :address => '10.10.10.10') {
-          role(:app)
-        }
-        server('db', :address => '10.10.10.15') {
-          role(:db)
-        }
-        server('queue', :address => '10.10.10.20') {
-          role(:queue)
+        # Puppet gets a $::exception_subject_prefix variable on these servers.
+        params('exception_subject_prefix' => '[STAGING] ')
+        # For simple staging, just one server that does everything.
+        server('readme.stage') {
+          role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
         }
       }
 
-      # Your production environment.
       group('production') {
-        prod_env = common_env.merge(
-          'PGPASSWORD' => '1391f3a24daef0c78f75cbef9d62eb848c2d454c71a5fd2a',
-          'PGHOST' => '20.20.20.20',
-          'RABBIT_URI' => 'amqp://example:e18edfa58fa6c5d3a9a@20.20.20.30'
+        # Puppet gets these top-scope variables on servers in this group.
+        params(
+          'exception_subject_prefix' => '[PRODUCTION] ',
+          'env' => {
+            "FORCE_SSL" => true,
+            "S3_KEY" => "AKIAKJRK23943202JK",
+            "S3_SECRET" => "KDJkaddsalkjfkawjri32jkjaklvjgakljkj"
+          }
         )
-        param('env' => prod_env)
-        group('app') {
-          role(:app)
-          param('env' => prod_env.merge('FORCE_SSL' => '1'))
-          server('app-1.example.com')
-          server('app-2.example.com')
-          server('app-3.example.com')
+
+        group('proxy') {
+          # Servers will have the :web role and the 'proxy' puppet class.
+          role(:cap => :web, :puppet => 'proxy')
+          server('proxy-1', :address => '10.10.10.5')
         }
+
+        group('app') {
+          # Servers will have the :app role and the 'app' puppet class.
+          role(:app)
+          server('app-1', :address => '10.10.10.10')
+          server('app-2', :address => '10.10.10.11')
+        }
+
         group('db') {
           role(:db)
-          server('db-1.example.com')
-          server('db-2.example.com')
-        }
-        server('queue-1.example.com') {
-          role(:queue)
+          server('db-1', :address => '10.10.10.50')
         }
       }
     }
@@ -101,7 +80,42 @@ You can run `list` in place of `tree` to see just the servers that match
 your filter.
 
 
-## Direct integration with Capistrano
+## The Hubcap DSL
+
+The Hubcap DSL is very simple. This is the basic set of statements:
+
+* **`group`** - A named set of servers, roles, variables, attributes. Groups
+  can be nested.
+
+* **`application`** - A special kind of group. You can pass `:recipes => ...` 
+  to this declaration. Each recipe path will be loaded into Capistrano only
+  for this application. Applications can't be nested.
+
+* **`server`** - An actual host that you are managing with Capistrano and
+  Puppet. The first argument is the name, which can be an IP address or domain
+  name if you like. Otherwise, pass `:address => '...'`.
+
+* **`cap_set`** - Set a Capistrano variable.
+
+* **`cap_attribute`** - Set a Cap attribute on all the servers within this 
+  group, such as `:primary => true` or `:no_release => true`.
+
+* **`role`** - Add a role to the list of Capistrano roles for servers within
+  this group. By default, these roles are supplied as classes to apply to the 
+  host in Puppet. You can specify that a role is Capistrano-only with
+  `:cap => '...'`, or Puppet-only with :puppet => `'...'`. This is additive:
+  if you have multiple role declarations in your tree, all of them apply.
+
+* **`params`** - Add to a hash of 'parameters' that will be supplied to Puppet
+  as top-scope variables for servers in this group. Like `role`, this is 
+  additive.
+
+Hubcap uses Puppet's External Node Classifier (ENC) feature to provide the
+list of classes and parameters for a specific host. More info here: 
+http://docs.puppetlabs.com/guides/external_nodes.html
+
+
+## Hubcap as a library
 
 If you'd rather run `cap` than `hubcap`, you can load your hub configuration
 directly in your `Capfile`. Add this to the end of the file:

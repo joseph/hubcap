@@ -17,7 +17,7 @@ class Hubcap::Group
   # hub. The hub must be a Hubcap::Hub.
   #
   def initialize(parent, name, &blk)
-    @name = name
+    @name = name.to_s
     if @parent = parent
       @cap_attributes = parent.cap_attributes.clone
       @cap_roles = parent.cap_roles.clone

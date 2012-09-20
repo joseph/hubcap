@@ -1,14 +1,6 @@
 class Hubcap::Group
 
-  attr_reader(
-    :name,
-    :cap_attributes,
-    :cap_roles,
-    :puppet_roles,
-    :params,
-    :parent,
-    :children
-  )
+  attr_reader(:name, :parent, :children)
 
   # Supply the parent group, the name of this new group and a block of code to
   # evaluate in the context of this new group.
@@ -18,14 +10,14 @@ class Hubcap::Group
   #
   def initialize(parent, name, &blk)
     @name = name.to_s
-    if @parent = parent
-      @cap_attributes = parent.cap_attributes.clone
-      @cap_roles = parent.cap_roles.clone
-      @puppet_roles = parent.puppet_roles.clone
-      @params = parent.params.clone
-    elsif !kind_of?(Hubcap::Hub)
+    @parent = parent
+    unless @parent || kind_of?(Hubcap::Hub)
       raise(Hubcap::GroupWithoutParent, self.inspect)
     end
+    @cap_attributes = {}
+    @cap_roles = []
+    @puppet_roles = []
+    @params = {}
     @children = []
     instance_eval(&blk)  if blk && processable?
   end
@@ -172,6 +164,27 @@ class Hubcap::Group
   end
 
 
+
+  def cap_attributes
+    @parent ? @parent.cap_attributes.merge(@cap_attributes) : @cap_attributes
+  end
+
+
+  def cap_roles
+    @parent ? @parent.cap_roles + @cap_roles : @cap_roles
+  end
+
+
+  def puppet_roles
+    @parent ? @parent.puppet_roles + @puppet_roles : @puppet_roles
+  end
+
+
+  def params
+    @parent ? @parent.params.merge(@params) : @params
+  end
+
+
   # Instantiate an application as a child of this group.
   #
   def application(name, options = {}, &blk)
@@ -199,9 +212,15 @@ class Hubcap::Group
   def tree(indent = "  ")
     outs = [self.class.name.split('::').last.upcase, "Name: #{@name}"]
     outs << "Atts: #{@cap_attributes.inspect}"  if @cap_attributes.any?
+    if @cap_roles == @puppet_roles
+      outs << "Role: #{@cap_roles.inspect}"  if @cap_roles.any?
+    else
+      cr = @cap_roles.any? ? 'Cap - '+@cap_roles.inspect : nil
+      pr = @puppet_roles.any? ? 'Puppet - '+@puppet_roles.inspect : nil
+      outs << "Role: #{[cr,pr].compact.join(' ')}"  if cr || pr
+    end
     outs << "Pram: #{@params.inspect}"  if @params.any?
     extend_tree(outs)  if respond_to?(:extend_tree)
-    outs << ""
     if @children.any?
       @children.each { |child| outs << child.tree(indent+"  ") }
     end

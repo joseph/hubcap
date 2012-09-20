@@ -35,8 +35,8 @@ class Hubcap::Server < Hubcap::Group
 
   def yaml
     {
-      'classes' => @puppet_roles.collect(&:to_s),
-      'parameters' => @params
+      'classes' => puppet_roles.collect(&:to_s),
+      'parameters' => params
     }.to_yaml
   end
 

@@ -7,10 +7,6 @@ class Hubcap::Hub < Hubcap::Group
     @filter = filter_string.split('.')
     @cap_sets = {}
     @cap_set_clashes = []
-    @cap_attributes = {}
-    @cap_roles = []
-    @puppet_roles = []
-    @params = {}
     @applications = []
     @servers = []
     @groups = []

@@ -50,14 +50,13 @@ class Hubcap::Group
 
 
   # Indicates whether we should process this group. We process all groups that
-  # match the filter or are below the furthest point in the filter.
+  # match any of the filters or are below the furthest point in the filter.
   #
   # "Match the filter" means that this group's history and the filter are
   # identical to the end of the shortest of the two arrays.
   #
   def processable?
-    s = [history.length, hub.filter.length].min
-    history.slice(0,s) == hub.filter.slice(0,s)
+    hub.filters.any? { |fr| matching_filter?(fr) }
   end
 
 
@@ -69,7 +68,7 @@ class Hubcap::Group
   # filter, but identical at each point in the filter.
   #
   def collectable?
-    (history.length >= hub.filter.length) && processable?
+    hub.filters.any? { |fr| history.size >= fr.size && matching_filter?(fr) }
   end
 
 
@@ -235,6 +234,13 @@ class Hubcap::Group
       hub.send(category) << child  if child.collectable?
       child
     end
+
+
+    def matching_filter?(fr)
+      s = [history.size, fr.size].min
+      history.slice(0, s) == fr.slice(0, s)
+    end
+
 
 
   class Hubcap::GroupWithoutParent < StandardError; end

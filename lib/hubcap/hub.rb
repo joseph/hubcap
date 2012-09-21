@@ -1,10 +1,11 @@
 class Hubcap::Hub < Hubcap::Group
 
-  attr_reader(:filter, :applications, :servers, :groups, :cap_sets)
+  attr_reader(:filters, :applications, :servers, :groups, :cap_sets)
 
 
   def initialize(filter_string)
-    @filter = filter_string.split('.')
+    @filters = filter_string.split(',').collect { |fltr| fltr.split('.') }
+    @filters = [[]]  if @filters.empty?
     @cap_sets = {}
     @cap_set_clashes = []
     @applications = []

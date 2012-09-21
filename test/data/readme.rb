@@ -20,9 +20,9 @@ application('readme', :recipes => 'deploy') {
     param(
       'exception_subject_prefix' => '[PRODUCTION] ',
       'env' => {
-        "FORCE_SSL" => true,
-        "S3_KEY" => "AKIAKJRK23943202JK",
-        "S3_SECRET" => "KDJkaddsalkjfkawjri32jkjaklvjgakljkj"
+        'FORCE_SSL' => true,
+        'S3_KEY' => 'AKIAKJRK23943202JK',
+        'S3_SECRET' => 'KDJkaddsalkjfkawjri32jkjaklvjgakljkj'
       }
     )
 

@@ -4,7 +4,8 @@ require File.expand_path('../lib/hubcap/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors = ['Joseph Pearson']
   gem.email = ['joseph@booki.sh']
-  gem.description = 'Unite Capistrano and Puppet config in one Ruby file.'
+  gem.description = 'Create a hub for your server configuration. '+
+    'Use it with Capistrano, Puppet and others.'
   gem.summary = 'Hubcap Capistrano/Puppet extension'
   gem.homepage = ''
 

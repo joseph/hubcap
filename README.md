@@ -64,9 +64,9 @@ parameters that Puppet will use.
         param(
           'exception_subject_prefix' => '[PRODUCTION] ',
           'env' => {
-            "FORCE_SSL" => true,
-            "S3_KEY" => "AKIAKJRK23943202JK",
-            "S3_SECRET" => "KDJkaddsalkjfkawjri32jkjaklvjgakljkj"
+            'FORCE_SSL' => true,
+            'S3_KEY' => 'AKIAKJRK23943202JK',
+            'S3_SECRET' => 'KDJkaddsalkjfkawjri32jkjaklvjgakljkj'
           }
         )
 
@@ -109,7 +109,7 @@ your filter:
     $ `hubcap example.production.db servers:tree`
 
 
-## Working with Puppet
+### Working with Puppet
 
 You should have your Puppet modules in a git repository. The location of this
 repository should be specified in your Capfile with
@@ -127,7 +127,7 @@ Once that's done, you can deploy your app in the usual way:
 
 
 
-## The Hubcap DSL
+### The Hubcap DSL
 
 The Hubcap DSL is very simple. This is the basic set of statements:
 
@@ -162,7 +162,7 @@ list of classes and parameters for a specific host. More info here:
 http://docs.puppetlabs.com/guides/external_nodes.html
 
 
-## Hubcap as a library
+### Hubcap as a library
 
 If you'd rather run `cap` than `hubcap`, you can load your hub configuration
 directly in your `Capfile`. Add this to the end of the file:
@@ -185,7 +185,7 @@ with something like this in your `Capfile`.
        require('hubcap')
        Hubcap.load(target, 'hub').configure_capistrano(self)
      else
-       warn("NB: No servers specified. Target a Hubcap group with TO.")
+       warn('NB: No servers specified. Target a Hubcap group with TO.')
      end
 
 In this set-up, you'd run `cap` like this:

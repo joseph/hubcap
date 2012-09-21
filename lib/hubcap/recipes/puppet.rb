@@ -101,7 +101,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         channel.send_data(out)  if out
       }
       sudo("mkdir -p #{File.dirname(puppet_path)}")
-      sudo("chown #{user} #{File.dirname(puppet_path)}")
+      sudo("chown -R #{user} #{File.dirname(puppet_path)}")
       run(
         "[ -d #{puppet_path} ] || git clone #{puppet_repository} #{puppet_path}",
         :shell => nil,

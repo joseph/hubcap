@@ -158,10 +158,26 @@ class Hubcap::Group
   #   params(:foo => 'bar')
   # ...then Puppet will have a top-level variable called $foo, containing 'bar'.
   #
+  # Note that hash keys that are not strings or symbols will raise an error,
+  # and symbol keys will be converted to strings. ie, :foo becomes 'foo' in the
+  # above example.
+  #
   def param(hash)
-    @params.update(hash)
-  end
+    hash.each_key { |k|
+      unless k.kind_of?(String) || k.kind_of?(Symbol)
+        raise(Hubcap::InvalidParamKeyType, k.inspect)
+      end
+    }
 
+    recurse = lambda { |dest, src|
+      src.each_pair { |k, v|
+        v = recurse.call({}, v)  if v.is_a?(Hash)
+        dest.update(k.to_s => v)
+      }
+      dest
+    }
+    recurse.call(@params, hash)
+  end
 
 
   def cap_attributes
@@ -244,5 +260,6 @@ class Hubcap::Group
 
 
   class Hubcap::GroupWithoutParent < StandardError; end
+  class Hubcap::InvalidParamKeyType < StandardError; end
 
 end

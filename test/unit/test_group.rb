@@ -30,7 +30,7 @@ class Hubcap::TestGroup < Test::Unit::TestCase
     hub = Hubcap.hub {
       group('test') { absorb('test/data/parts/foo_param') }
     }
-    assert_equal('foo', hub.groups.first.params[:foo])
+    assert_equal('foo', hub.groups.first.params['foo'])
   end
 
 
@@ -171,6 +171,21 @@ class Hubcap::TestGroup < Test::Unit::TestCase
     }
     assert_equal(1, hub.servers.first.params['foo'])
     assert_equal(2, hub.servers.first.params['baz'])
+
+    # Recursive stringification of hash keys.
+    hub = Hubcap.hub {
+      server('test') {
+        param(:foo => { :bar => { :garply => 'grault' } })
+      }
+    }
+    assert_equal('foo', hub.servers.first.params.keys.first)
+    assert_equal('bar', hub.servers.first.params['foo'].keys.first)
+    assert_equal('garply', hub.servers.first.params['foo']['bar'].keys.first)
+
+    # Top-level keys other than strings or symbols are rejected.
+    assert_raises(Hubcap::InvalidParamKeyType) {
+      hub = Hubcap.hub { server('test') { param(1 => 'x') } }
+    }
   end
 
 end

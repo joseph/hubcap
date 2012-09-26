@@ -258,6 +258,15 @@ class Hubcap::Group
     end
 
 
+    def resolv(*names)
+      require 'resolv'
+      if names.size == 1
+        Resolv.getaddress(names.first)
+      else
+        names.collect { |name| Resolv.getaddress(name) }
+      end
+    end
+
 
   class Hubcap::GroupWithoutParent < StandardError; end
   class Hubcap::InvalidParamKeyType < StandardError; end

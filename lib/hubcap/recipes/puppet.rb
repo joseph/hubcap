@@ -93,7 +93,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         out = case text
         when /\bpassword.*:/i, /passphrase/i  # Git password or SSH passphrase.
           "#{puppet_git_password}\n"
-        when %r{\(yes/no\)}                   # Should git connect?
+        when %r{\(yes\/no\)}                  # Should git connect?
           "yes\n"
         when /accept \(t\)emporarily/         # Should git accept certificate?
           "t\n"

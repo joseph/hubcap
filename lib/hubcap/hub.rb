@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class Hubcap::Hub < Hubcap::Group
 
   attr_reader(:filters, :applications, :servers, :groups, :cap_sets)

@@ -18,6 +18,7 @@ class Hubcap::Group
     @cap_roles = []
     @puppet_roles = []
     @params = {}
+    @hosts = {}
     @children = []
     instance_eval(&blk)  if blk && processable?
   end
@@ -180,6 +181,11 @@ class Hubcap::Group
   end
 
 
+  def host(hash)
+    @hosts = hash
+  end
+
+
   def cap_attributes
     @parent ? @parent.cap_attributes.merge(@cap_attributes) : @cap_attributes
   end
@@ -197,6 +203,11 @@ class Hubcap::Group
 
   def params
     @parent ? @parent.params.merge(@params) : @params
+  end
+
+
+  def hosts
+    @parent ? @parent.hosts.merge(@hosts) : @hosts
   end
 
 
@@ -258,14 +269,14 @@ class Hubcap::Group
     end
 
 
-    def resolv(*names)
-      require 'resolv'
-      if names.size == 1
-        Resolv.getaddress(names.first)
+    def resolv(*hnames)
+      if hnames.size == 1
+        hosts[hnames.first] || Resolv.getaddress(hnames.first)
       else
-        names.collect { |name| Resolv.getaddress(name) }
+        hnames.collect { |hname| resolv(hname) }
       end
     end
+
 
 
   class Hubcap::GroupWithoutParent < StandardError; end

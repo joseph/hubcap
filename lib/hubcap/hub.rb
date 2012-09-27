@@ -56,8 +56,12 @@ class Hubcap::Hub < Hubcap::Group
     }
 
     # Declare the servers.
-    servers.each { |s|
-      cap.server(s.address, *(s.cap_roles + [s.cap_attributes]))
+    servers.each { |svr|
+      opts = {
+        :name => svr.name,
+        :full_name => svr.history.join('.')
+      }.merge(svr.cap_attributes)
+      cap.server(svr.address, *(svr.cap_roles + [opts]))
     }
 
     configure_application_mode(cap)  unless capistrano_is_agnostic?(cap)

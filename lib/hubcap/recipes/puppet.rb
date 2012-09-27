@@ -55,7 +55,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           'echo "Ruby 1.9 verified";',
         'else',
           "#{apt_cmd} update;",
-          "#{apt_cmd} install ruby1.9.1 git-core;",
+          "#{apt_cmd} install ruby1.9.1 ruby1.9.1-dev git-core;",
         'fi'
       ].join(' '))
 
@@ -88,8 +88,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task(:update) do
       handle_data = lambda { |channel, stream, text|
-        host = channel[:host]
-        logger.info "[#{host} :: #{stream}] #{text}"
+        host = channel[:server]
+        logger.info "[#{stream} :: #{host}] #{text}"
         out = case text
         when /\bpassword.*:/i, /passphrase/i  # Git password or SSH passphrase.
           "#{puppet_git_password}\n"

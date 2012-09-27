@@ -17,23 +17,25 @@ derive from decentralization and pushing changes on-demand.)
 
 Here's a really simple infrastructure configuration file:
 
-    group('us') {
-      server('app.example.com') {
-        role(:app)
-        cap_attribute(:primary => true)
-      }
-      server('db.example.com') {
-        role(:db)
-        cap_attribute(:no_release => true)
-      }
-    }
+```ruby
+group('us') {
+  server('app.example.com') {
+    role(:app)
+    cap_attribute(:primary => true)
+  }
+  server('db.example.com') {
+    role(:db)
+    cap_attribute(:no_release => true)
+  }
+}
 
-    group('au') {
-      server('example.com.au') {
-        role(:app, :db)
-        cap_attribute(:primary => true)
-      }
-    }
+group('au') {
+  server('example.com.au') {
+    role(:app, :db)
+    cap_attribute(:primary => true)
+  }
+}
+```
 
 Using this config, you could tell Capistrano to deploy to all servers, servers
 in one group, or just a single server.
@@ -42,54 +44,55 @@ Here's a more advanced example - an application that can be deployed to a set
 of *staging* servers or a larger set of *production* servers. It has special
 parameters that Puppet will use.
 
-    # An application called 'readme' that uses Cap's default deployment recipe.
-    application('readme', :recipes => 'deploy') {
-      # Set a capistrano variable.
-      cap_set('repository', 'git@github.com:joseph/readme.git')
+```ruby
+# An application called 'readme' that uses Cap's default deployment recipe.
+application('readme', :recipes => 'deploy') {
+  # Set a capistrano variable.
+  cap_set('repository', 'git@github.com:joseph/readme.git')
 
-      # Declare that all servers will have the 'baseline' puppet class.
-      role(:puppet => 'baseline')
+  # Declare that all servers will have the 'baseline' puppet class.
+  role(:puppet => 'baseline')
 
-      group('staging') {
-        # Puppet gets a $::exception_subject_prefix variable on these servers.
-        param('exception_subject_prefix' => '[STAGING] ')
-        # For simple staging, just one server that does everything.
-        server('readme.stage') {
-          role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
-        }
+  group('staging') {
+    # Puppet gets a $::exception_subject_prefix variable on these servers.
+    param('exception_subject_prefix' => '[STAGING] ')
+    # For simple staging, just one server that does everything.
+    server('readme.stage') {
+      role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
+    }
+  }
+
+  group('production') {
+    # Puppet gets these top-scope variables on servers in this group.
+    param(
+      'exception_subject_prefix' => '[PRODUCTION] ',
+      'env' => {
+        'FORCE_SSL' => true,
+        'S3_KEY' => 'AKIAKJRK23943202JK',
+        'S3_SECRET' => 'KDJkaddsalkjfkawjri32jkjaklvjgakljkj'
       }
+    )
 
-      group('production') {
-        # Puppet gets these top-scope variables on servers in this group.
-        param(
-          'exception_subject_prefix' => '[PRODUCTION] ',
-          'env' => {
-            'FORCE_SSL' => true,
-            'S3_KEY' => 'AKIAKJRK23943202JK',
-            'S3_SECRET' => 'KDJkaddsalkjfkawjri32jkjaklvjgakljkj'
-          }
-        )
-
-        group('proxy') {
-          # Servers will have the :web role and the 'proxy' puppet class.
-          role(:cap => :web, :puppet => 'proxy')
-          server('proxy-1', :address => '10.10.10.5')
-        }
-
-        group('app') {
-          # Servers will have the :app role and the 'app' puppet class.
-          role(:app)
-          server('app-1', :address => '10.10.10.10')
-          server('app-2', :address => '10.10.10.11')
-        }
-
-        group('db') {
-          role(:db)
-          server('db-1', :address => '10.10.10.50')
-        }
-      }
+    group('proxy') {
+      # Servers will have the :web role and the 'proxy' puppet class.
+      role(:cap => :web, :puppet => 'proxy')
+      server('proxy-1', :address => '10.10.10.5')
     }
 
+    group('app') {
+      # Servers will have the :app role and the 'app' puppet class.
+      role(:app)
+      server('app-1', :address => '10.10.10.10')
+      server('app-2', :address => '10.10.10.11')
+    }
+
+    group('db') {
+      role(:db)
+      server('db-1', :address => '10.10.10.50')
+    }
+  }
+}
+```
 
 Save this as `example.rb` in a `hub` subdirectory of the location of your
 `Capfile`.
@@ -167,8 +170,10 @@ http://docs.puppetlabs.com/guides/external_nodes.html
 If you'd rather run `cap` than `hubcap`, you can load your hub configuration
 directly in your `Capfile`. Add this to the end of the file:
 
-     require('hubcap')
-     Hubcap.load('', 'hub').configure_capistrano(self)
+```ruby
+require('hubcap')
+Hubcap.load('', 'hub').configure_capistrano(self)
+```
 
 The two arguments to `Hubcap.load` are the filter (where `''` means no filter),
 and the path to the hub configuration. This will load `*.rb` in the `hub`
@@ -178,15 +183,17 @@ arguments -- whole directories or specific files.
 If you want to simulate the behaviour of the `hubcap` script, you could do it
 with something like this in your `Capfile`.
 
-     # Load servers and sets from node config. Any recipes loaded after this
-     # point will be available only in application mode.
-     if (target = ENV['TO']) && !ENV['TO'].empty?
-       target = ''  if target == 'ALL'
-       require('hubcap')
-       Hubcap.load(target, 'hub').configure_capistrano(self)
-     else
-       warn('NB: No servers specified. Target a Hubcap group with TO.')
-     end
+```ruby
+# Load servers and sets from node config. Any recipes loaded after this
+# point will be available only in application mode.
+if (target = ENV['TO']) && !ENV['TO'].empty?
+  target = ''  if target == 'ALL'
+  require('hubcap')
+  Hubcap.load(target, 'hub').configure_capistrano(self)
+else
+  warn('NB: No servers specified. Target a Hubcap group with TO.')
+end
+```
 
 In this set-up, you'd run `cap` like this:
 

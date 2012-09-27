@@ -181,6 +181,22 @@ class Hubcap::Group
   end
 
 
+  # Defines hostnames that point to IP addresses. Eg,
+  #
+  #   host('staging-1' => '192.168.1.20')
+  #
+  # This is solely used as a look-up table for resolv(). If the hostname can't
+  # be found in this list, resolv() will fall back to a normal DNS look-up.
+  # It's a neat way to define your infrastructure with names, rather than
+  # hard-coding IPs, without needing a shared DNS server for everyone
+  # (and without having to wait for DNS to propagate). Think of it as a
+  # built-in /etc/hosts file.
+  #
+  # You can define multiple hostname/ip pairs in a single call.
+  #
+  # A group inherits a clone of its parent's hosts. So if you want to change
+  # the IP of a hostname just for a child-group, you can (but: caveat emptor).
+  #
   def host(hash)
     @hosts = hash
   end
@@ -208,6 +224,18 @@ class Hubcap::Group
 
   def hosts
     @parent ? @parent.hosts.merge(@hosts) : @hosts
+  end
+
+
+  # Takes a name and returns an IP address. It looks at the @hosts table first,
+  # then falls back to a normal DNS look-up.
+  #
+  def resolv(*hnames)
+    if hnames.size == 1
+      hosts[hnames.first] || Resolv.getaddress(hnames.first)
+    else
+      hnames.collect { |hname| resolv(hname) }
+    end
   end
 
 
@@ -268,14 +296,6 @@ class Hubcap::Group
       history.slice(0, s) == fr.slice(0, s)
     end
 
-
-    def resolv(*hnames)
-      if hnames.size == 1
-        hosts[hnames.first] || Resolv.getaddress(hnames.first)
-      else
-        hnames.collect { |hname| resolv(hname) }
-      end
-    end
 
 
 

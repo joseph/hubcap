@@ -66,4 +66,104 @@ class Hubcap::TestServer < Test::Unit::TestCase
     assert_equal([1, 2], hash['parameters'].values.sort)
   end
 
+
+  def test_host_lookup_single_level
+    hub = Hubcap.hub {
+      host('test' => '0.0.0.0')
+      server('test')
+    }
+    assert_equal('0.0.0.0', hub.servers.first.address)
+  end
+
+
+  def test_host_lookup_multiple_levels
+    hub = Hubcap.hub {
+      host('g1.t1' => '1.1.1.1')
+      host('g1.a1.t2' => '2.2.2.2')
+      group('g1') {
+        server('t1')
+        application('a1') {
+          server('t2')
+        }
+      }
+    }
+    assert_equal('1.1.1.1', hub.servers[0].address)
+    assert_equal('2.2.2.2', hub.servers[1].address)
+  end
+
+
+  def test_host_lookup_where_name_is_ip
+    hub = Hubcap.hub {
+      host(
+        'foo' => '255.255.255.255',
+        '1.1.1.1' => '255.255.255.254'
+      )
+      server('1.1.1.1')
+    }
+    assert_equal('1.1.1.1', hub.servers.first.address)
+  end
+
+
+  def test_host_lookup_where_name_is_not_in_hosts
+    hub = Hubcap.hub {
+      host(
+        'foo.bar.com' => '255.255.255.255',
+        'baz.bar.com' => '255.255.255.254'
+      )
+      server('garply.bar.com')
+    }
+    assert_equal('garply.bar.com', hub.servers.first.address)
+  end
+
+
+  def test_host_lookup_dereferencing
+    hub = Hubcap.hub {
+      host('some.other.thing' => '1.1.1.1')
+      group('g1') {
+        host('g1.t1' => 'some.other.thing')
+        server('t1')
+      }
+    }
+    assert_equal('1.1.1.1', hub.servers.first.address)
+  end
+
+
+  def test_host_lookup_handle_circular_reference
+    assert_raises(Hubcap::HostCircularReference) {
+      hub = Hubcap.hub {
+        host('some.other.thing' => 'g1.t1')
+        group('g1') {
+          host('g1.t1' => 'some.other.thing')
+          server('t1')
+        }
+      }
+    }
+  end
+
+
+  def test_host_lookup_where_hosts_is_overridden_in_subgroup
+    hub = Hubcap.hub {
+      host('g1.t1' => '2.2.2.2')
+      group('g1') {
+        host('g1.t1' => '1.1.1.1')
+        server('t1')
+      }
+    }
+    assert_equal('1.1.1.1', hub.servers[0].address)
+  end
+
+
+  def test_resolv
+    hub = Hubcap.hub {
+      host('g1.t1' => '2.2.2.2')
+      group('g1') {
+        host('g1.t1' => '1.1.1.1')
+        server('t1')
+      }
+      server('t2', :address => resolv('g1.t1'))
+    }
+    assert_equal('1.1.1.1', hub.servers[0].address)
+    assert_equal('2.2.2.2', hub.servers[1].address)
+  end
+
 end

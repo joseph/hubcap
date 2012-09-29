@@ -1,5 +1,7 @@
 class Hubcap::Group
 
+  IP_PATTERN = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
+
   attr_reader(:name, :parent, :children)
 
   # Supply the parent group, the name of this new group and a block of code to
@@ -198,7 +200,7 @@ class Hubcap::Group
   # the IP of a hostname just for a child-group, you can (but: caveat emptor).
   #
   def host(hash)
-    @hosts = hash
+    @hosts.update(hash)
   end
 
 
@@ -232,9 +234,28 @@ class Hubcap::Group
   #
   def resolv(*hnames)
     if hnames.size == 1
-      hosts[hnames.first] || Resolv.getaddress(hnames.first)
+      result = lookup(hnames.first)
+      result.match(IP_PATTERN) ? result : Resolv.getaddress(result)
     else
       hnames.collect { |hname| resolv(hname) }
+    end
+  end
+
+
+  # Dereferences the host name using the @hosts table. Follows references.
+  # Returns the first value that looks like an IP address OR that it can't
+  # find in the table. (So, if there's no match, you just get the name back.
+  #
+  def lookup(hname, history = [])
+    return hname  if hname.match(IP_PATTERN)
+    result = hosts[hname]
+    if !result
+      return hname
+    elsif history.include?(result)
+      raise(Hubcap::HostCircularReference, history.to_s)
+    else
+      history << hname
+      lookup(result, history)
     end
   end
 
@@ -301,5 +322,6 @@ class Hubcap::Group
 
   class Hubcap::GroupWithoutParent < StandardError; end
   class Hubcap::InvalidParamKeyType < StandardError; end
+  class Hubcap::HostCircularReference < StandardError; end
 
 end

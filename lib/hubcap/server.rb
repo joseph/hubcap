@@ -4,8 +4,14 @@ class Hubcap::Server < Hubcap::Group
 
 
   def initialize(parent, name, options = {}, &blk)
-    @address = options[:address] || name
     super(parent, name, &blk)
+    # If name is an IP, or is not in hosts hash, use name as address
+    # Otherwise, dereference it from the hash and assign it
+    unless @address = options[:address]
+      hist = history.join('.')
+      @address = lookup(hist)
+      @address = lookup(name)  if @address == hist
+    end
   end
 
 

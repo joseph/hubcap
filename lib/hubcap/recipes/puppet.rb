@@ -55,7 +55,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           'echo "Ruby 1.9 verified";',
         'else',
           "#{apt_cmd} update;",
-          "#{apt_cmd} install ruby1.9.1 ruby1.9.1-dev git-core;",
+          "#{apt_cmd} install ruby1.9.1 ruby1.9.1-dev git-core build-essential;",
         'fi'
       ].join(' '))
 

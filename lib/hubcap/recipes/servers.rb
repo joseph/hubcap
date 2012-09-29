@@ -18,4 +18,11 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   end
 
+
+  task(:ssh) do
+    host = hubcap.servers.first.address
+    puts("SSH connect to: #{user}@#{host}")
+    system("ssh -A #{user}@#{host}")
+  end
+
 end

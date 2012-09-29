@@ -57,6 +57,8 @@ class Hubcap::Hub < Hubcap::Group
 
     # Declare the servers.
     servers.each { |svr|
+      # Raises an error if we cannot resolve the resulting address with DNS.
+      resolv(svr.address)  unless svr.address.match(Hubcap::Group::IP_PATTERN)
       opts = {
         :name => svr.name,
         :full_name => svr.history.join('.')

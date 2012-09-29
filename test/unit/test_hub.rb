@@ -21,7 +21,7 @@ class Hubcap::TestHub < Test::Unit::TestCase
       application('a') {
         group('g') {
           role(:baseline)
-          server('s') { role(:everything) }
+          server('s', :address => '0.0.0.0') { role(:everything) }
         }
       }
     }
@@ -34,8 +34,8 @@ class Hubcap::TestHub < Test::Unit::TestCase
     assert_not_nil(cap.find_task('servers:list'))
     assert_not_nil(cap.find_task('puppet:check'))
     assert_nil(cap.find_task('deploy:setup'))
-    assert_equal('s', cap.roles[:baseline].servers.first.host)
-    assert_equal('s', cap.roles[:everything].servers.first.host)
+    assert_equal('0.0.0.0', cap.roles[:baseline].servers.first.host)
+    assert_equal('0.0.0.0', cap.roles[:everything].servers.first.host)
   end
 
 
@@ -45,7 +45,7 @@ class Hubcap::TestHub < Test::Unit::TestCase
         group('g') {
           cap_set(:branch, 'deploy')
           role(:baseline)
-          server('s') { role(:everything) }
+          server('s', :address => '0.0.0.0') { role(:everything) }
         }
       }
     }
@@ -62,8 +62,8 @@ class Hubcap::TestHub < Test::Unit::TestCase
   def test_configure_capistrano_in_application_mode_with_two_applications
     hub = Hubcap.hub {
       role(:baseline)
-      application('a1') { server('s1') }
-      application('a2') { server('s2') }
+      application('a1') { server('s1', :address => '1.1.1.1') }
+      application('a2') { server('s2', :address => '2.2.2.2') }
     }
 
     cap = Capistrano::Configuration.new
@@ -75,7 +75,9 @@ class Hubcap::TestHub < Test::Unit::TestCase
 
 
   def test_configure_capistrano_in_application_mode_with_no_applications
-    hub = Hubcap.hub { server('s1') { role(:baseline) } }
+    hub = Hubcap.hub {
+      server('s', :address => '0.0.0.0') { role(:baseline) }
+    }
 
     cap = Capistrano::Configuration.new
     cap.set(:hubcap_agnostic, false)
@@ -88,7 +90,7 @@ class Hubcap::TestHub < Test::Unit::TestCase
   def test_configure_capistrano_in_application_mode_with_no_applications
     hub = Hubcap.hub {
       cap_set(:foo => 'bar')
-      server('s1') {
+      server('s', :address => '0.0.0.0') {
         cap_set(:foo => 'baz')
         role(:baseline)
       }
@@ -98,6 +100,16 @@ class Hubcap::TestHub < Test::Unit::TestCase
     cap.set(:hubcap_agnostic, false)
     assert_raises(Hubcap::ApplicationModeError::DuplicateSets) {
       hub.configure_capistrano(cap)
+    }
+  end
+
+
+  def test_server_address_resolution
+    hub = Hubcap.hub {
+      server('s')
+    }
+    assert_raises(Hubcap::ServerAddressUnknown) {
+      hub.configure_capistrano(Capistrano::Configuration.new)
     }
   end
 

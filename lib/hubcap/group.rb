@@ -235,7 +235,11 @@ class Hubcap::Group
   def resolv(*hnames)
     if hnames.size == 1
       result = lookup(hnames.first)
-      result.match(IP_PATTERN) ? result : Resolv.getaddress(result)
+      begin
+        result.match(IP_PATTERN) ? result : Resolv.getaddress(result)
+      rescue Resolv::ResolvError => e
+        raise(Hubcap::ServerAddressUnknown, hnames.first)
+      end
     else
       hnames.collect { |hname| resolv(hname) }
     end
@@ -323,5 +327,6 @@ class Hubcap::Group
   class Hubcap::GroupWithoutParent < StandardError; end
   class Hubcap::InvalidParamKeyType < StandardError; end
   class Hubcap::HostCircularReference < StandardError; end
+  class Hubcap::ServerAddressUnknown < StandardError; end
 
 end

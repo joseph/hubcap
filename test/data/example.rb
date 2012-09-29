@@ -52,16 +52,16 @@ application('example', :recipes => 'deploy') {
     group('app') {
       role(:app)
       param('env' => prod_env.merge('FORCE_SSL' => '1'))
-      server('app-1.example.com')
-      server('app-2.example.com')
-      server('app-3.example.com')
+      server('example.com')
+      server('example.org')
+      server('example.net')
     }
     group('db') {
       role(:db)
-      server('db-1.example.com')
-      server('db-2.example.com')
+      server('example.com')
+      server('example.net')
     }
-    server('queue-1.example.com') {
+    server('example.com') {
       role(:queue)
     }
   }

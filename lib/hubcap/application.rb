@@ -13,11 +13,6 @@ class Hubcap::Application < Hubcap::Group
   end
 
 
-  def extend_tree(outs)
-    outs << "Load: #{@recipe_paths.inspect}"  if @recipe_paths.any?
-  end
-
-
   class Hubcap::NestedApplicationDisallowed < StandardError; end
 
 end

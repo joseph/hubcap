@@ -10,7 +10,7 @@ application('readme', :recipes => 'deploy') {
     # Puppet will have a $::exception_subject_prefix variable on these servers.
     param('exception_subject_prefix' => '[STAGING] ')
     # For simple staging, just one server that does everything.
-    server('readme.stage') {
+    server('readme.stage', :address => '0.0.0.0') {
       role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
     }
   }

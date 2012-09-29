@@ -285,28 +285,6 @@ class Hubcap::Group
   end
 
 
-  # Returns a formatted string of all the key details for this group, and
-  # recurses into each child.
-  #
-  def tree(indent = "  ")
-    outs = [self.class.name.split('::').last.upcase, "Name: #{@name}"]
-    outs << "Atts: #{@cap_attributes.inspect}"  if @cap_attributes.any?
-    if @cap_roles == @puppet_roles
-      outs << "Role: #{@cap_roles.inspect}"  if @cap_roles.any?
-    else
-      cr = @cap_roles.any? ? 'Cap - '+@cap_roles.inspect : nil
-      pr = @puppet_roles.any? ? 'Puppet - '+@puppet_roles.inspect : nil
-      outs << "Role: #{[cr,pr].compact.join(' ')}"  if cr || pr
-    end
-    outs << "Pram: #{@params.inspect}"  if @params.any?
-    extend_tree(outs)  if respond_to?(:extend_tree)
-    if @children.any?
-      @children.each { |child| outs << child.tree(indent+"  ") }
-    end
-    outs.join("\n#{indent}")
-  end
-
-
   private
 
     def add_child(category, child)

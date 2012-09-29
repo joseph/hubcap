@@ -28,11 +28,6 @@ class Hubcap::Hub < Hubcap::Group
   end
 
 
-  def extend_tree(outs)
-    outs << "Sets: #{@cap_sets.inspect}"
-  end
-
-
   # Does a few things:
   #
   # * Sets the :hubcap variable in the Capistrano instance.
@@ -52,6 +47,7 @@ class Hubcap::Hub < Hubcap::Group
 
     cap.instance_eval {
       require('hubcap/recipes/servers')
+      require('hubcap/recipes/ssh')
       require('hubcap/recipes/puppet')
     }
 

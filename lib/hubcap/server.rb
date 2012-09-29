@@ -36,6 +36,7 @@ class Hubcap::Server < Hubcap::Group
       return p  if p.kind_of?(Hubcap::Application)
       p = p.instance_variable_get(:@parent)
     end
+    nil
   end
 
 

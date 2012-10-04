@@ -60,7 +60,7 @@ class Hubcap::TestServer < Test::Unit::TestCase
       }
     }
     hash = YAML.load(hub.servers.first.yaml)
-    assert_equal(['baseline', 'test::server'], hash['classes'])
+    assert_equal({ 'baseline' => nil, 'test::server' => nil }, hash['classes'])
     assert_equal(['classes', 'parameters'], hash.keys.sort)
     assert_equal(['bar', 'foo'], hash['parameters'].keys.sort)
     assert_equal([1, 2], hash['parameters'].values.sort)

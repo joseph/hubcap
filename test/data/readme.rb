@@ -4,14 +4,15 @@ application('readme', :recipes => 'deploy') {
   cap_set('repository', 'git@github.com:joseph/readme.git')
 
   # Declare that all servers will have the 'baseline' puppet class.
-  role(:puppet => 'baseline')
+  puppet_role('baseline')
 
   group('staging') {
     # Puppet will have a $::exception_subject_prefix variable on these servers.
     param('exception_subject_prefix' => '[STAGING] ')
     # For simple staging, just one server that does everything.
     server('readme.stage', :address => '0.0.0.0') {
-      role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
+      cap_role(:web, :app, :db)
+      puppet_role('proxy', 'app', 'db')
     }
   }
 
@@ -28,7 +29,8 @@ application('readme', :recipes => 'deploy') {
 
     group('proxy') {
       # Servers will have the :web role and the 'proxy' puppet class.
-      role(:cap => :web, :puppet => 'proxy')
+      cap_role(:web)
+      puppet_role('proxy')
       server('proxy-1', :address => '10.10.10.5')
     }
 

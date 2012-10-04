@@ -119,7 +119,7 @@ class Hubcap::TestGroup < Test::Unit::TestCase
       server('test')
     }
     assert_equal([:baseline], hub.servers.first.cap_roles)
-    assert_equal([:baseline], hub.servers.first.puppet_roles)
+    assert_equal({ 'baseline' => nil }, hub.servers.first.puppet_roles)
 
     # Multiple roles in a single declaration
     hub = Hubcap.hub {
@@ -127,7 +127,10 @@ class Hubcap::TestGroup < Test::Unit::TestCase
       server('test')
     }
     assert_equal([:baseline, :app], hub.servers.first.cap_roles)
-    assert_equal([:baseline, :app], hub.servers.first.puppet_roles)
+    assert_equal(
+      { 'baseline' => nil, 'app' => nil },
+      hub.servers.first.puppet_roles
+    )
 
     # Multiple declarations are additive
     hub = Hubcap.hub {
@@ -135,26 +138,46 @@ class Hubcap::TestGroup < Test::Unit::TestCase
       server('test') { role(:db) }
     }
     assert_equal([:baseline, :db], hub.servers.first.cap_roles)
-    assert_equal([:baseline, :db], hub.servers.first.puppet_roles)
+    assert_equal(
+      { 'baseline' => nil, 'db' => nil },
+      hub.servers.first.puppet_roles
+    )
 
     # Separate cap and puppet roles
     hub = Hubcap.hub {
-      role(:cap => :app, :puppet => 'testapp')
+      cap_role(:app)
+      puppet_role('testapp')
       server('test')
     }
     assert_equal([:app], hub.servers.first.cap_roles)
-    assert_equal(['testapp'], hub.servers.first.puppet_roles)
+    assert_equal({ 'testapp' => nil }, hub.servers.first.puppet_roles)
 
     # Separate cap/puppet roles can be defined with an array
     # Also shows that multiple role declarations are additive
     hub = Hubcap.hub {
-      role(:cap => [:app, :db])
+      cap_role(:app, :db)
       server('test') { role(:baseline) }
     }
     assert_equal([:app, :db], hub.cap_roles)
-    assert_equal([], hub.puppet_roles)
+    assert_equal({}, hub.puppet_roles)
     assert_equal([:app, :db, :baseline], hub.servers.first.cap_roles)
-    assert_equal([:baseline], hub.servers.first.puppet_roles)
+    assert_equal({ 'baseline' => nil }, hub.servers.first.puppet_roles)
+
+    # Puppet roles can be passed parameters in a hash.
+    hub = Hubcap.hub {
+      puppet_role(:foo, :bar, { :garply => { :grault => 'x' } }, :garp)
+      server('test') { role(:baseline) }
+    }
+    assert_equal(
+      {
+        'foo' => nil,
+        'bar' => nil,
+        'garply' => { 'grault' => 'x' },
+        'garp' => nil,
+        'baseline' => nil
+      },
+      hub.servers.first.puppet_roles
+    )
   end
 
 

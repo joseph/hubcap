@@ -51,19 +51,20 @@ application('readme', :recipes => 'deploy') {
   cap_set('repository', 'git@github.com:joseph/readme.git')
 
   # Declare that all servers will have the 'baseline' puppet class.
-  role(:puppet => 'baseline')
+  puppet_role('baseline')
 
   group('staging') {
-    # Puppet gets a $::exception_subject_prefix variable on these servers.
+    # Puppet will have a $::exception_subject_prefix variable on these servers.
     param('exception_subject_prefix' => '[STAGING] ')
     # For simple staging, just one server that does everything.
-    server('readme.stage') {
-      role(:cap => [:web, :app, :db], :puppet => ['proxy', 'app', 'db'])
+    server('readme.stage', :address => '0.0.0.0') {
+      cap_role(:web, :app, :db)
+      puppet_role('proxy', 'app', 'db')
     }
   }
 
   group('production') {
-    # Puppet gets these top-scope variables on servers in this group.
+    # Puppet will have these top-scope variables on all these servers.
     param(
       'exception_subject_prefix' => '[PRODUCTION] ',
       'env' => {
@@ -75,7 +76,8 @@ application('readme', :recipes => 'deploy') {
 
     group('proxy') {
       # Servers will have the :web role and the 'proxy' puppet class.
-      role(:cap => :web, :puppet => 'proxy')
+      cap_role(:web)
+      puppet_role('proxy')
       server('proxy-1', :address => '10.10.10.5')
     }
 
@@ -153,7 +155,7 @@ The Hubcap DSL is very simple. This is the basic set of statements:
 * `role` - Add a role to the list of Capistrano roles for servers within
   this group. By default, these roles are supplied as classes to apply to the 
   host in Puppet. You can specify that a role is Capistrano-only with
-  `:cap => '...'`, or Puppet-only with :puppet => `'...'`. This is additive:
+  `cap_role()`, or Puppet-only with `puppet_role()`. This is additive:
   if you have multiple role declarations in your tree, all of them apply.
 
 * `param` - Add to a hash of 'parameters' that will be supplied to Puppet

@@ -18,7 +18,7 @@ class Hubcap::Group
     end
     @cap_attributes = {}
     @cap_roles = []
-    @puppet_roles = []
+    @puppet_roles = {}
     @params = {}
     @hosts = {}
     @children = []
@@ -142,15 +142,44 @@ class Hubcap::Group
   # or:
   #   role(:cap => [:app, :db], :puppet => 'relishapp')
   #
+  # def role(*args)
+  #   if args.length == 1 && args.first.kind_of?(Hash)
+  #     h = args.first
+  #     @cap_roles += [h[:cap]].flatten  if h.has_key?(:cap)
+  #     @puppet_roles += [h[:puppet]].flatten  if h.has_key?(:puppet)
+  #   else
+  #     @cap_roles += args
+  #     @puppet_roles += args
+  #   end
+  # end
+
+
   def role(*args)
-    if args.length == 1 && args.first.kind_of?(Hash)
-      h = args.first
-      @cap_roles += [h[:cap]].flatten  if h.has_key?(:cap)
-      @puppet_roles += [h[:puppet]].flatten  if h.has_key?(:puppet)
-    else
-      @cap_roles += args
-      @puppet_roles += args
-    end
+    cap_role(*args)
+    puppet_role(*args)
+  end
+
+
+  def cap_role(*args)
+    inv = args.select { |a| !a.kind_of?(String) && !a.kind_of?(Symbol) }
+    raise "Capistrano role must be string or symbol: #{inv}"  if inv.any?
+    @cap_roles += args
+  end
+
+
+  def puppet_role(*args)
+    args.each { |a|
+      if a.kind_of?(String) || a.kind_of?(Symbol)
+        update_with_stringified_keys(@puppet_roles, { a => nil })
+      elsif a.kind_of?(Hash)
+        inv = []
+        a.each_pair { |k, v| inv << v  unless v.kind_of?(Hash) }
+        raise "Puppet role parameters must be a hash: #{inv}"  if inv.any?
+        update_with_stringified_keys(@puppet_roles, a)
+      else
+        raise "Puppet role must be a string, symbol or hash: #{a}"
+      end
+    }
   end
 
 
@@ -171,15 +200,7 @@ class Hubcap::Group
         raise(Hubcap::InvalidParamKeyType, k.inspect)
       end
     }
-
-    recurse = lambda { |dest, src|
-      src.each_pair { |k, v|
-        v = recurse.call({}, v)  if v.is_a?(Hash)
-        dest.update(k.to_s => v)
-      }
-      dest
-    }
-    recurse.call(@params, hash)
+    update_with_stringified_keys(@params, hash)
   end
 
 
@@ -215,7 +236,7 @@ class Hubcap::Group
 
 
   def puppet_roles
-    @parent ? @parent.puppet_roles + @puppet_roles : @puppet_roles
+    @parent ? @parent.puppet_roles.merge(@puppet_roles) : @puppet_roles
   end
 
 
@@ -300,6 +321,13 @@ class Hubcap::Group
     end
 
 
+    def update_with_stringified_keys(dest, src)
+      src.each_pair { |k, v|
+        v = update_with_stringified_keys({}, v)  if v.is_a?(Hash)
+        dest.update(k.to_s => v)
+      }
+      dest
+    end
 
 
   class Hubcap::GroupWithoutParent < StandardError; end

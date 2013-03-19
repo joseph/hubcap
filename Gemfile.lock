@@ -1,0 +1,14 @@
+PATH
+  remote: .
+  specs:
+    hubcap (0.0.6)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hubcap!

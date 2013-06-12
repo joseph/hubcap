@@ -5,10 +5,14 @@ class Hubcap::Server < Hubcap::Group
 
   def initialize(parent, name, options = {}, &blk)
     super(parent, name, &blk)
+    hist = history.join('.')
+
+    # only set the server_name if it's not already set
+    param('server_name' => hist) if params['server_name'].nil?
+
     # If name is an IP, or is not in hosts hash, use name as address
     # Otherwise, dereference it from the hash and assign it
     unless @address = options[:address]
-      hist = history.join('.')
       @address = lookup(hist)
       @address = lookup(name)  if @address == hist
     end

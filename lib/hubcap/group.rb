@@ -34,7 +34,7 @@ class Hubcap::Group
     p += '.rb'  unless File.exists?(p)
     raise("File not found: #{path}")  unless File.exists?(p)
     code = IO.read(p)
-    eval(code)
+    eval(code, binding, p)
   end
 
 

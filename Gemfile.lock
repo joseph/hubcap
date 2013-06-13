@@ -2,13 +2,32 @@ PATH
   remote: .
   specs:
     hubcap (0.0.6)
+      capistrano
 
 GEM
   remote: https://rubygems.org/
   specs:
+    capistrano (2.13.4)
+      highline
+      net-scp (>= 1.0.0)
+      net-sftp (>= 2.0.0)
+      net-ssh (>= 2.0.14)
+      net-ssh-gateway (>= 1.1.0)
+    highline (1.6.15)
+    jruby-pageant (1.1.1)
+    net-scp (1.0.4)
+      net-ssh (>= 1.99.1)
+    net-sftp (2.0.5)
+      net-ssh (>= 2.0.9)
+    net-ssh (2.6.0)
+      jruby-pageant (>= 1.1.1)
+    net-ssh-gateway (1.1.0)
+      net-ssh (>= 1.99.1)
+    rake (0.9.2.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   hubcap!
+  rake

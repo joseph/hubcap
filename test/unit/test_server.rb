@@ -55,15 +55,28 @@ class Hubcap::TestServer < Test::Unit::TestCase
         role('baseline')
         server('test') {
           role('test::server')
-          param('foo' => 1, 'bar' => 2)
+          param('foo' => '1', 'bar' => '2')
         }
       }
     }
     hash = YAML.load(hub.servers.first.yaml)
     assert_equal({ 'baseline' => nil, 'test::server' => nil }, hash['classes'])
     assert_equal(['classes', 'parameters'], hash.keys.sort)
-    assert_equal(['bar', 'foo'], hash['parameters'].keys.sort)
-    assert_equal([1, 2], hash['parameters'].values.sort)
+    assert_equal(['bar', 'foo', 'server_name'], hash['parameters'].keys.sort)
+    assert_equal(['1', '2', 'everything.test'], hash['parameters'].values.sort)
+  end
+
+  def test_yaml_server_name
+    hub = Hubcap.hub {
+      group('everything') {
+        role('baseline')
+        param('server_name' => 'do not overwrite')
+        server('test')
+      }
+    }
+    hash = YAML.load(hub.servers.first.yaml)
+    assert_equal(['server_name'], hash['parameters'].keys)
+    assert_equal(['do not overwrite'], hash['parameters'].values)
   end
 
 

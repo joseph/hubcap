@@ -66,6 +66,21 @@ class Hubcap::TestServer < Test::Unit::TestCase
     assert_equal(['1', '2', 'everything.test'], hash['parameters'].values.sort)
   end
 
+  def test_param_converts_symbols_to_strings
+    hub = Hubcap.hub {
+      server('test') {
+        param(:foo => 1, 'bar' => '2', :baz => :baz)
+      }
+    }
+    hash = YAML.load(hub.servers.first.yaml)
+    %w(foo bar baz).each { |i|
+      assert(hash['parameters'].keys.include?(i), "expected keys to include #{i}")
+    }
+    [1, '2', 'baz'].each { |i|
+      assert(hash['parameters'].values.include?(i), "expected values to include #{i}")
+    }
+  end
+
   def test_yaml_server_name
     hub = Hubcap.hub {
       group('everything') {
@@ -143,7 +158,7 @@ class Hubcap::TestServer < Test::Unit::TestCase
 
   def test_host_lookup_handle_circular_reference
     assert_raises(Hubcap::HostCircularReference) {
-      hub = Hubcap.hub {
+      Hubcap.hub {
         host('some.other.thing' => 'g1.t1')
         group('g1') {
           host('g1.t1' => 'some.other.thing')

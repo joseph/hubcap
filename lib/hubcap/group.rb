@@ -324,6 +324,7 @@ class Hubcap::Group
     def update_with_stringified_keys(dest, src)
       src.each_pair { |k, v|
         v = update_with_stringified_keys({}, v)  if v.is_a?(Hash)
+        v = v.to_s if v.kind_of?(Symbol) # ensure strings not symbols
         dest.update(k.to_s => v)
       }
       dest

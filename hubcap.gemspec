@@ -15,6 +15,6 @@ Gem::Specification.new do |gem|
   gem.name = 'hubcap'
   gem.require_paths = ['lib']
   gem.version = Hubcap::VERSION
-  gem.add_dependency('capistrano')
+  gem.add_dependency('capistrano', '~> 2.13')
   gem.add_development_dependency('rake')
 end

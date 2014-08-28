@@ -7,8 +7,8 @@ Gem::Specification.new do |gem|
   gem.description = 'Create a hub for your server configuration. '+
     'Use it with Capistrano, Puppet and others.'
   gem.summary = 'Hubcap Capistrano/Puppet extension'
-  gem.homepage = ''
-
+  gem.homepage = 'https://github.com/joseph/hubcap'
+  gem.licenses = 'MIT'
   gem.files = `git ls-files`.split($\)
   gem.executables = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files = gem.files.grep(%r{^(test|spec|features)/})

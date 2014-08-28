@@ -6,6 +6,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set(:puppet_repository) { raise "Required variable: puppet_repository" }
     end
     set(:puppet_branch, 'master')
+    set(:puppet_version, '3.6.2')
     set(:puppet_path, '/var/www/provision/puppet')
     set(:puppet_git_password) { Capistrano::CLI.password_prompt }
     set(:puppet_manifest_path) { "#{puppet_path}/puppet/host.pp" }
@@ -59,13 +60,11 @@ Capistrano::Configuration.instance(:must_exist).load do
         'fi'
       ].join(' '))
 
-      # 3.0.0-rc5 is the last version that a) runs on Ruby 1.9 and b) works.
-      ppt_ver = '3.0.0.rc5'
       sudo_bash([
-        "if [[ `gem q -i -n \"^puppet$\" -v #{ppt_ver}` =~ \"true\" ]]; then",
+        "if [[ `gem q -i -n \"^puppet$\" -v #{puppet_version}` =~ \"true\" ]]; then",
           'echo "Puppet verified";',
         'else',
-          "gem install puppet -v #{ppt_ver} --pre --no-rdoc --no-ri;",
+          "gem install puppet -v #{puppet_version} --no-rdoc --no-ri;",
         'fi'
       ].join(' '))
 

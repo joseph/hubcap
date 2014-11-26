@@ -265,7 +265,7 @@ class Hubcap::Group
   end
 
   def extras
-    @parent ? @parent.extra_attributes.merge(@extra_attributes) : @extra_attributes
+    @parent ? @parent.extras.merge(@extra_attributes) : @extra_attributes
   end
 
   # Takes a name and returns an IP address. It looks at the @hosts table first,

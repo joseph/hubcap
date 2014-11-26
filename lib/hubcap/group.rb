@@ -20,6 +20,7 @@ class Hubcap::Group
     @cap_roles = []
     @puppet_roles = {}
     @params = {}
+    @extra_attributes = {}
     @hosts = {}
     @children = []
     instance_eval(&blk)  if blk && processable?
@@ -203,6 +204,28 @@ class Hubcap::Group
     update_with_stringified_keys(@params, hash)
   end
 
+  # Adds extra (inheritable) attributes to the referencing scope
+  # These attributes are not used by hubcap or puppet, but can be used by
+  # by other tools using hubcap to parse the configuration tree.
+  #
+  # Any method starting with extra_ will store a value in this hash.
+  #
+  # i.e. extra_some_key('some_value')
+  # will store "some_key" => "some_value" in the hash.
+  #
+  # Additionally, extra_attribute can be called directly
+  # and passed a hash of attributes, i.e.:
+  #
+  # extra_attribute({'some_key' => 'some_value'})
+  #
+  def extra_attribute(hash)
+    hash.each_key { |k|
+      unless k.kind_of?(String) || k.kind_of?(Symbol)
+        raise(Hubcap::InvalidParamKeyType, k.inspect)
+      end
+    }
+    update_with_stringified_keys(@extra_attributes, hash)
+  end
 
   # Defines hostnames that point to IP addresses. Eg,
   #
@@ -249,6 +272,9 @@ class Hubcap::Group
     @parent ? @parent.hosts.merge(@hosts) : @hosts
   end
 
+  def extra_attributes
+    @parent ? @parent.extra_attributes.merge(@extra_attributes) : @extra_attributes
+  end
 
   # Takes a name and returns an IP address. It looks at the @hosts table first,
   # then falls back to a normal DNS look-up.
@@ -305,6 +331,24 @@ class Hubcap::Group
     add_child(:groups, Hubcap::Group.new(self, name, &blk))
   end
 
+
+  # ignore any extensions to the dsl by default
+  def method_missing(method, *args, &block)
+    if m = /^extra_(.*)$/.match(method.to_s)
+      new_key = m[1]
+      extra_attribute({new_key => args[0]})
+    else
+      super
+    end
+  end
+
+  def respond_to?(method)
+    if method.to_s =~ /^extra_/
+      true
+    else
+      super
+    end
+  end
 
   private
 

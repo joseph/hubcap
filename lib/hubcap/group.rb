@@ -20,6 +20,7 @@ class Hubcap::Group
     @cap_roles = []
     @puppet_roles = {}
     @params = {}
+    @extra_attributes = {}
     @hosts = {}
     @children = []
     instance_eval(&blk)  if blk && processable?
@@ -203,6 +204,20 @@ class Hubcap::Group
     update_with_stringified_keys(@params, hash)
   end
 
+  # Adds extra (inheritable) attributes to the referencing scope
+  # These attributes are not used by hubcap or puppet, but can be used by
+  # by other tools using hubcap to parse the configuration tree.
+  #
+  # extra({'some_key' => 'some_value'})
+  #
+  def extra(hash)
+    hash.each_key { |k|
+      unless k.kind_of?(String) || k.kind_of?(Symbol)
+        raise(Hubcap::InvalidParamKeyType, k.inspect)
+      end
+    }
+    update_with_stringified_keys(@extra_attributes, hash)
+  end
 
   # Defines hostnames that point to IP addresses. Eg,
   #
@@ -249,6 +264,9 @@ class Hubcap::Group
     @parent ? @parent.hosts.merge(@hosts) : @hosts
   end
 
+  def extras
+    @parent ? @parent.extras.merge(@extra_attributes) : @extra_attributes
+  end
 
   # Takes a name and returns an IP address. It looks at the @hosts table first,
   # then falls back to a normal DNS look-up.

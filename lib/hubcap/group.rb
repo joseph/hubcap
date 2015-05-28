@@ -4,6 +4,7 @@ class Hubcap::Group
 
   attr_reader(:name, :parent, :children)
 
+
   # Supply the parent group, the name of this new group and a block of code to
   # evaluate in the context of this new group.
   #
@@ -143,18 +144,6 @@ class Hubcap::Group
   # or:
   #   role(:cap => [:app, :db], :puppet => 'relishapp')
   #
-  # def role(*args)
-  #   if args.length == 1 && args.first.kind_of?(Hash)
-  #     h = args.first
-  #     @cap_roles += [h[:cap]].flatten  if h.has_key?(:cap)
-  #     @puppet_roles += [h[:puppet]].flatten  if h.has_key?(:puppet)
-  #   else
-  #     @cap_roles += args
-  #     @puppet_roles += args
-  #   end
-  # end
-
-
   def role(*args)
     cap_role(*args)
     puppet_role(*args)
@@ -203,6 +192,7 @@ class Hubcap::Group
     }
     update_with_stringified_keys(@params, hash)
   end
+  
 
   # Adds extra (inheritable) attributes to the referencing scope
   # These attributes are not used by hubcap or puppet, but can be used by
@@ -218,6 +208,7 @@ class Hubcap::Group
     }
     update_with_stringified_keys(@extra_attributes, hash)
   end
+  
 
   # Defines hostnames that point to IP addresses. Eg,
   #
@@ -264,9 +255,11 @@ class Hubcap::Group
     @parent ? @parent.hosts.merge(@hosts) : @hosts
   end
 
+
   def extras
     @parent ? @parent.extras.merge(@extra_attributes) : @extra_attributes
   end
+
 
   # Takes a name and returns an IP address. It looks at the @hosts table first,
   # then falls back to a normal DNS look-up.

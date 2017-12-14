@@ -33,8 +33,9 @@ class Hubcap::Group
   #
   def absorb(path)
     p = path
-    p += '.rb'  unless File.exists?(p)
+    p += '.rb'  unless File.exists?(p) && !File.directory?(p)
     raise("File not found: #{path}")  unless File.exists?(p)
+    raise("#{path} is a directory")  if File.directory?(p)
     code = IO.read(p)
     eval(code, binding, p)
   end

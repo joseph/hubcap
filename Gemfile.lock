@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hubcap (1.2.1)
+    hubcap (1.2.2)
       capistrano (~> 2.13)
 
 GEM
